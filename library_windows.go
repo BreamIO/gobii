@@ -4,7 +4,6 @@ package tobii
 
 import (
 	"fmt"
-	"log"
 	"syscall"
 	"unsafe"
 )
@@ -27,13 +26,13 @@ const (
 	txSetInvalidArgumentHandler
 
 	// not a function
-	txLastIndex
+	lastIndex
 )
 
 const eyexName = `Tobii.EyeX.Client.dll`
 
 var (
-	txFunc = make([]uintptr, txLastIndex, txLastIndex)
+	txFunc = make([]*syscall.Proc, lastIndex, lastIndex)
 
 	txName = []string{
 		"txInitializeSystem",
@@ -59,15 +58,12 @@ func abort(funcname string, err error) {
 }
 
 func wInitializeSystem() error {
-	const nargs uintptr = 3
-
-	ret, _, callErr := syscall.Syscall(txFunc[txInitializeSystem],
-		nargs,
+	ret, _, callErr := txFunc[txInitializeSystem].Call(
 		txSystemComponentOverrideFlagNone,
 		0, // null
 		0) // null
 
-	if callErr != 0 {
+	if callErr != nil {
 		abort(txName[txInitializeSystem], callErr)
 	}
 
@@ -84,13 +80,11 @@ func wCreateContext(smoething bool) (uintptr, error) {
 	const nargs uintptr = 3
 	var handle uintptr
 
-	ret, _, callErr := syscall.Syscall(txFunc[txCreateContext],
-		nargs,
+	ret, _, callErr := txFunc[txCreateContext].Call(
 		uintptr(unsafe.Pointer(&handle)),
-		0, //false
-		0)
+		0) //false
 
-	if callErr != 0 {
+	if callErr != nil {
 		abort(txName[txCreateContext], callErr)
 	}
 
@@ -104,18 +98,15 @@ func wCreateContext(smoething bool) (uintptr, error) {
 }
 
 func init() {
-	eyex, err := syscall.LoadLibrary(eyexName)
+	var err error
 
-	if err != nil {
-		fmt.Println("There was an error loading " + eyexName)
-		log.Fatal(err)
-	}
+	eyex := syscall.MustLoadDLL(eyexName)
 
 	for i, name := range txName {
-		txFunc[i], err = syscall.GetProcAddress(eyex, name)
+		txFunc[i], err = eyex.FindProc(name)
 
 		if err != nil {
-			abort("Initialization of Tobii EyeX function " + name, err)
+			abort("Loading Tobii EyeX function " + name, err)
 		}
 	}
 }
