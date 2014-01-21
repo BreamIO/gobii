@@ -30,6 +30,8 @@ const (
 	txLastIndex
 )
 
+const eyexName = `Tobii.EyeX.Client.dll`
+
 var (
 	txFunc = make([]uintptr, txLastIndex, txLastIndex)
 
@@ -102,14 +104,15 @@ func wCreateContext(smoething bool) (uintptr, error) {
 }
 
 func init() {
-	tobii, err := syscall.LoadLibrary("tobii.dll")
+	eyex, err := syscall.LoadLibrary(eyexName)
 
 	if err != nil {
+		fmt.Println("There was an error loading " + eyexName)
 		log.Fatal(err)
 	}
 
 	for i, name := range txName {
-		txFunc[i], err = syscall.GetProcAddress(tobii, name)
+		txFunc[i], err = syscall.GetProcAddress(eyex, name)
 
 		if err != nil {
 			abort("Initialization of Tobii EyeX function " + name, err)
