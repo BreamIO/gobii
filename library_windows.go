@@ -4,6 +4,7 @@ package tobii
 
 import (
 	"fmt"
+	"log"
 	"syscall"
 	"unsafe"
 )
@@ -103,11 +104,15 @@ func wCreateContext(smoething bool) (uintptr, error) {
 func init() {
 	tobii, err := syscall.LoadLibrary("tobii.dll")
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for i, name := range txName {
 		txFunc[i], err = syscall.GetProcAddress(tobii, name)
 
 		if err != nil {
-			abort("Initialization of Tobii EyeX", err)
+			abort("Initialization of Tobii EyeX function " + name, err)
 		}
 	}
 }
