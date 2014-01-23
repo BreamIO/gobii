@@ -2,6 +2,9 @@
 
 package tobii
 
+//#include <Windows.h>
+import "C"
+
 import (
 	"fmt"
 	"syscall"
@@ -100,7 +103,15 @@ func wCreateContext(smoething bool) (uintptr, error) {
 func init() {
 	var err error
 
-	eyex := syscall.MustLoadDLL(eyexName)
+	// Hack to make Windows report
+	// what caused a LoadDLL failure
+	C.SetErrorMode(0)
+
+	eyex, err := syscall.LoadDLL(eyexName)
+
+	if err != nil {
+		abort("Failed to load " + eyexName, err)
+	}
 
 	for i, name := range txName {
 		txFunc[i], err = eyex.FindProc(name)
@@ -109,4 +120,6 @@ func init() {
 			abort("Loading Tobii EyeX function " + name, err)
 		}
 	}
+
+	wInitializeSystem()
 }
