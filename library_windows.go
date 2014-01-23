@@ -57,7 +57,7 @@ var (
 )
 
 func abort(funcname string, err error) {
-        panic(fmt.Sprintf("%s failed: %v", funcname, err))
+	panic(fmt.Sprintf("%s failed: %v", funcname, err))
 }
 
 func wInitializeSystem() error {
@@ -79,7 +79,7 @@ func wInitializeSystem() error {
 	return nil
 }
 
-func wCreateContext(smoething bool) (uintptr, error) {
+func wCreateContext(something bool) (uintptr, error) {
 	const nargs uintptr = 3
 	var handle uintptr
 
@@ -110,14 +110,14 @@ func init() {
 	eyex, err := syscall.LoadDLL(eyexName)
 
 	if err != nil {
-		abort("Failed to load " + eyexName, err)
+		abort("Failed to load "+eyexName, err)
 	}
 
 	for i, name := range txName {
 		txFunc[i], err = eyex.FindProc(name)
 
 		if err != nil {
-			abort("Loading Tobii EyeX function " + name, err)
+			abort("Loading Tobii EyeX function "+name, err)
 		}
 	}
 

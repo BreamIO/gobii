@@ -5,7 +5,7 @@ import (
 )
 
 type EyeTracker struct {
-	handle uintptr
+	handle   uintptr
 	gazeChan chan GazeData
 }
 
@@ -20,7 +20,7 @@ func NewEyeTracker() (*EyeTracker, error) {
 }
 
 type GazeData struct {
-	X, Y float64
+	X, Y      float64
 	Timestamp time.Time
 }
 

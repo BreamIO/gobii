@@ -73,7 +73,7 @@ func (t txResult) Error() string {
 }
 
 const (
-	txSystemComponentOverrideFlagNone = 0
+	txSystemComponentOverrideFlagNone        = 0
 	txSystemComponentOverrideFlagMemoryModel = 1 << iota
 	txSystemComponentOverrideFlagThreadingModel
 	txSystemComponentOverrideFlagLoggingModel

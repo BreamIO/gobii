@@ -24,14 +24,14 @@ func wCreateContext(somethingElse bool) (uintptr, error) {
 	var handle uintptr = 1
 
 	/*
-	res, _, callErr := syscall.Syscall(txCreateContext,
-		nargs,
-		&handle,
-		wBool(bool))
+		res, _, callErr := syscall.Syscall(txCreateContext,
+			nargs,
+			&handle,
+			wBool(bool))
 
-	if res != txResultOk {
-		return 0, errors.New(txResult(res).String())
-	}
+		if res != txResultOk {
+			return 0, errors.New(txResult(res).String())
+		}
 
 	*/
 	return handle, nil
