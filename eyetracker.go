@@ -1,7 +1,8 @@
-package tobii
+package gobii
 
 import (
 	"time"
+	//"fmt"
 )
 
 type EyeTracker struct {
@@ -10,6 +11,7 @@ type EyeTracker struct {
 }
 
 func NewEyeTracker() (*EyeTracker, error) {
+	//txCreateContext(&hContext, TX_FALSE);
 	handle, err := wCreateContext(false)
 
 	if err != nil {
@@ -30,4 +32,16 @@ func (e *EyeTracker) GetGazeChannel() <-chan GazeData {
 	}
 
 	return e.gazeChan
+}
+
+func (e *EyeTracker) Close() {
+	err := wReleaseContext(e.handle)
+	
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func (e *EyeTracker) onStateChanged() {
+	//txRegisterEventHandler(hContext, &hEventHandlerTicket, HandleEvent, NULL);
 }

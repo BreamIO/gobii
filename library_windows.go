@@ -1,6 +1,6 @@
 // +build windows
 
-package tobii
+package gobii
 
 //#include <Windows.h>
 import "C"
@@ -33,6 +33,7 @@ const (
 )
 
 const eyexName = `Tobii.EyeX.Client.dll`
+const OK = "Åtgärden har slutförts."
 
 var (
 	txFunc = make([]*syscall.Proc, lastIndex, lastIndex)
@@ -40,8 +41,8 @@ var (
 	txName = []string{
 		"txInitializeSystem",
 		"txUninitializeSystem",
-		"txGetIsSystemInitialized",
 		"txCreateContext",
+		"txGetIsSystemInitialized",
 		"txReleaseContext",
 		"txGetContext",
 		"txGetTrackedObjects",
@@ -60,44 +61,55 @@ func abort(funcname string, err error) {
 	panic(fmt.Sprintf("%s failed: %v", funcname, err))
 }
 
-func wInitializeSystem() error {
+func wInitializeSystem() {
+	//txInitializeSystem(TX_SYSTEMCOMPONENTOVERRIDEFLAG_NONE, NULL, NULL)
 	ret, _, callErr := txFunc[txInitializeSystem].Call(
 		txSystemComponentOverrideFlagNone,
 		0, // null
 		0) // null
 
-	if callErr != nil {
-		abort(txName[txInitializeSystem], callErr)
-	}
-
 	result := txResult(ret)
 
 	if result != txResultOk {
-		return result
+		abort(txName[txInitializeSystem], callErr)
 	}
-
-	return nil
+	
 }
 
 func wCreateContext(something bool) (uintptr, error) {
-	const nargs uintptr = 3
-	var handle uintptr
+	var handle uintptr = TxEmptyHandle;
+	pointer := uintptr(unsafe.Pointer(&handle)) //**void
 
-	ret, _, callErr := txFunc[txCreateContext].Call(
-		uintptr(unsafe.Pointer(&handle)),
-		0) //false
-
-	if callErr != nil {
-		abort(txName[txCreateContext], callErr)
-	}
+	ret, _, _ := txFunc[txCreateContext].Call(
+		pointer,
+		txTrue)
 
 	result := txResult(ret)
-
-	if result != txResultOk {
-		return 0, result
+	if result == txResultOk {
+		fmt.Println("&handle", &handle)
+		fmt.Println("handle", handle)
+		fmt.Printf("pointer %x\n", pointer)
+		fmt.Println("*pointer", *(*int)(unsafe.Pointer(pointer)))
+		return pointer, nil
 	}
 
-	return handle, nil
+	return 0, result
+}
+
+func wReleaseContext(handle uintptr) error {
+	//fmt.Println("&handle", handle)
+	//fmt.Println("handle", *handle)
+	ret, _, _ := txFunc[txReleaseContext].Call(
+		handle,
+		txCleanupTimeDefault,
+		txFalse) //logLeakingObjectsInfo
+	
+	result := txResult(ret)
+	if result == txResultOk {
+		return nil
+	}
+	
+	return result
 }
 
 func init() {
@@ -120,6 +132,5 @@ func init() {
 			abort("Loading Tobii EyeX function "+name, err)
 		}
 	}
-
 	wInitializeSystem()
 }

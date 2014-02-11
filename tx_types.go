@@ -1,4 +1,4 @@
-package tobii
+package gobii
 
 type txUserParam uintptr
 type txHandle uintptr
@@ -8,7 +8,14 @@ type txResult int
 
 const (
 	txEnumStartValue = 1
+	txCleanupTimeDefault = 500
+	
+	txTrue = 1
+	txFalse = 0
+	TxEmptyHandle = 0
+)
 
+const (
 	txResultUnknown txResult = iota + txEnumStartValue
 	txResultOk
 	txResultSystemNotInitialized
