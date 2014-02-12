@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
-	"github.com/zephyyrr/gobii"
+	tobii "github.com/zephyyrr/gobii"
 )
 
 func main() {
@@ -14,9 +14,15 @@ func main() {
 		fmt.Println("Error:",err)
 		return
 	}
-
-	fmt.Printf("Tracker: %#v\n", et)
-	//gaze := et.GetGazeChannel();
 	
-	time.Sleep(time.Second)
+	fmt.Printf("Tracker: %#v\n", et)
+	gaze := et.GetGazeChannel();
+	
+	go func(){
+		for point := range gaze {
+			fmt.Println(point);
+		}
+	}()
+	
+	time.Sleep(time.Second*30);
 }
