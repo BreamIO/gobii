@@ -2,7 +2,7 @@ package gobii
 
 import (
 	"time"
-	//"fmt"
+	"fmt"
 )
 
 type EyeTracker struct {
@@ -24,6 +24,10 @@ func NewEyeTracker() (*EyeTracker, error) {
 type GazeData struct {
 	X, Y      float64
 	Timestamp time.Time
+}
+
+func (d GazeData) String() string {
+	return fmt.Sprintf("{X: %f, Y: %f, Time: %d}", d.X, d.Y, d.Timestamp);
 }
 
 func (e *EyeTracker) GetGazeChannel() <-chan GazeData {
