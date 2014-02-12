@@ -86,23 +86,17 @@ func wCreateContext(something bool) (uintptr, error) {
 
 	result := txResult(ret)
 	if result == txResultOk {
-		fmt.Println("&handle", &handle)
-		fmt.Println("handle", handle)
-		fmt.Printf("pointer %x\n", pointer)
-		fmt.Println("*pointer", *(*int)(unsafe.Pointer(pointer)))
-		return pointer, nil
+		return handle, nil
 	}
 
 	return 0, result
 }
 
 func wReleaseContext(handle uintptr) error {
-	//fmt.Println("&handle", handle)
-	//fmt.Println("handle", *handle)
 	ret, _, _ := txFunc[txReleaseContext].Call(
-		handle,
+		uintptr(unsafe.Pointer(&handle)),
 		txCleanupTimeDefault,
-		txFalse) //logLeakingObjectsInfo
+		txTrue) //logLeakingObjectsInfo
 	
 	result := txResult(ret)
 	if result == txResultOk {
