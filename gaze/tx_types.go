@@ -1,4 +1,4 @@
-package gobii
+package gobii/gaze
 
 type txUserParam uintptr
 type txHandle uintptr

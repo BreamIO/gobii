@@ -1,6 +1,6 @@
 // +build windows
 
-package gobii
+package gobii/gaze
 
 //#include <Windows.h>
 import "C"
