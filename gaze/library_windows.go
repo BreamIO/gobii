@@ -12,22 +12,26 @@ import (
 )
 
 const (
-	txInitializeSystem = iota
-	txUninitializeSystem
-	txCreateContext
-	txGetIsSystemInitialized
-	txReleaseContext
-	txGetContext
-	txGetTrackedObjects
-	txGetObjectType
-	txGetObjectTypeName
-	txReleaseObject
-	txEnableConnection
-	txDisableConnection
-	txWriteLogMessage
-	txFormatObjectAsText
-	txSetInvalidArgumentHandler
 
+	//tobiigaze.h
+	tobiigaze_create = iota
+	tobiigaze_destroy
+	tobiigaze_connect
+	tobiigaze_disconnect
+	tobiigaze_run_event_loop
+	tobiigaze_break_event_loop
+	tobiigaze_start_tracking
+	tobiigaze_stop_tracking
+	tobiigaze_get_device_info
+	tobiigaze_get_track_box
+	tobiigaze_get_url
+	tobiigaze_is_connected
+	tobiigaze_get_error_message
+
+	//tobiigaze_discovery.h
+	tobiigaze_list_usb_eye_trackers
+	tobiigaze_get_connected_eye_tracker
+	
 	// not a function
 	lastIndex
 )
@@ -39,21 +43,26 @@ var (
 	txFunc = make([]*syscall.Proc, lastIndex, lastIndex)
 
 	txName = []string{
-		"txInitializeSystem",
-		"txUninitializeSystem",
-		"txCreateContext",
-		"txGetIsSystemInitialized",
-		"txReleaseContext",
-		"txGetContext",
-		"txGetTrackedObjects",
-		"txGetObjectType",
-		"txGetObjectTypeName",
-		"txReleaseObject",
-		"txEnableConnection",
-		"txDisableConnection",
-		"txWriteLogMessage",
-		"txFormatObjectAsText",
-		"txSetInvalidArgumentHandler",
+		"tobiigaze_create",
+		"tobiigaze_destroy",
+		
+		"tobiigaze_connect",
+		"tobiigaze_disconnect",
+		
+		"tobiigaze_run_event_loop",
+		"tobiigaze_break_event_loop",
+		
+		"tobiigaze_start_tracking",
+		"tobiigaze_stop_tracking",
+		
+		"tobiigaze_get_device_info",
+		"tobiigaze_get_track_box",
+		"tobiigaze_get_url",
+		"tobiigaze_is_connected",
+		"tobiigaze_get_error_message",
+
+		"tobiigaze_list_usb_eye_trackers",
+		"tobiigaze_get_connected_eye_tracker",
 	}
 )
 
@@ -93,38 +102,9 @@ func wCreateContext(something bool) (uintptr, error) {
 }
 
 func wReleaseContext(handle uintptr) error {
-	ret, _, _ := txFunc[txReleaseContext].Call(
-		uintptr(unsafe.Pointer(&handle)),
-		txCleanupTimeDefault,
-		txTrue) //logLeakingObjectsInfo
-	
-	result := txResult(ret)
-	if result == txResultOk {
-		return nil
-	}
-	
-	return result
+
 }
 
 func init() {
-	var err error
 
-	// Hack to make Windows report
-	// what caused a LoadDLL failure
-	C.SetErrorMode(0)
-
-	eyex, err := syscall.LoadDLL(eyexName)
-
-	if err != nil {
-		abort("Failed to load "+eyexName, err)
-	}
-
-	for i, name := range txName {
-		txFunc[i], err = eyex.FindProc(name)
-
-		if err != nil {
-			abort("Loading Tobii EyeX function "+name, err)
-		}
-	}
-	wInitializeSystem()
 }
