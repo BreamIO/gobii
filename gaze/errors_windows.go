@@ -1,7 +1,5 @@
 package gaze
 
-import "C"
-
 import (
 	"fmt"
 	"unsafe"
