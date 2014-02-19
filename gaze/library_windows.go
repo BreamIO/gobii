@@ -39,9 +39,9 @@ const (
 const dllName = `TobiiGazeCore64.dll`
 
 var (
-	txFunc = make([]callable, lastIndex, lastIndex)
+	tobiigaze = make([]callable, lastIndex, lastIndex)
 
-	txName = []string{
+	tobiigazeNames = []string{
 		"tobiigaze_create",
 		"tobiigaze_destroy",
 
@@ -98,8 +98,8 @@ func init() {
 		abort("Failed to load "+dllName, err)
 	}
 
-	for i, name := range txName {
-		txFunc[i], err = gaze.FindProc(name)
+	for i, name := range tobiigazeNames {
+		tobiigaze[i], err = gaze.FindProc(name)
 
 		if err != nil {
 			abort("Loading Tobii Gaze function "+name, err)
