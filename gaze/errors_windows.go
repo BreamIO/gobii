@@ -1,7 +1,6 @@
 package gaze
 
 import (
-	"fmt"
 	"unsafe"
 	"unicode/utf16"
 )
