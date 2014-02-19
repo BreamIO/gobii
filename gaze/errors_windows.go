@@ -1,11 +1,9 @@
 package gaze
 
-import "C"
-
 import (
 	"fmt"
 	"unsafe"
-	"utf16"
+	"unicode/utf16"
 )
 
 type Error int
