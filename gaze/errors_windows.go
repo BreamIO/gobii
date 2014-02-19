@@ -9,29 +9,29 @@ import (
 type Error int
 
 // Converts a C string (*char) to a Go string.
-func convertCStringToString(cs uintptr) (s string) {
+func convertCStringToString(charPtr uintptr) string {
 	// If given a null pointer, return the empty string.
-	if cs == 0 {
+	if charPtr == 0 {
 		return ""
 	}
 
 	// Make a buffer
-	us := make([]uint16, 0, 256)
+	buf := make([]uint16, 0, 256)
 
 	// For each 16-bit character
-	for p := cs; ; p += 2 {
+	for ptr := charPtr; ; ptr += 2 {
 		// Dereference the current pointer position to an uint16
-		u := *(*uint16)(unsafe.Pointer(p))
+		char := *(*uint16)(unsafe.Pointer(ptr))
 
 		// If current char is '\0', the string is terminated.
-		if u == 0 {
-			return string(utf16.Decode(us)) 
+		if char == 0 {
+			return string(utf16.Decode(buf))
 		}
 
 		// Append the character to the string.
-		us = append(us, u) 
+		buf = append(buf, char)
 	}
-} 
+}
 
 func (e Error) Error() string {
 	res, _, _ := tobiigaze[create].Call(uintptr(e))

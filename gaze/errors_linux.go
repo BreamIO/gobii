@@ -6,10 +6,6 @@ package gaze
 */
 import "C"
 
-import (
-	"fmt"
-)
-
 type Error C.tobiigaze_error_code
 
 func (e Error) Error() string {
