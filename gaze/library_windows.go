@@ -38,6 +38,8 @@ const (
 
 const dllName = `TobiiGazeCore64.dll`
 
+type GazeTracker uintptr
+
 var (
 	tobiigaze = make([]callable, lastIndex, lastIndex)
 
@@ -73,17 +75,61 @@ func abort(funcname string, err error) {
 	panic(fmt.Sprintf("%s failed: %v", funcname, err))
 }
 
-func wInitializeSystem() {
+func Create(string url) GazeTracker {
+	return 0;
+}
+
+func (this GazeTracker) Destroy() {
+	
+}
+
+func (this GazeTracker) Disconnect() {
 
 }
 
-func wCreateContext(something bool) (uintptr, error) {
-	return 0, nil
+func (this GazeTracker) Connect() {
+
 }
 
-func wReleaseContext(handle uintptr) error {
-	return nil;
+func (this GazeTracker) RunEventLoop() {
+
 }
+
+func (this GazeTracker) BreakEventLoop() {
+
+}
+
+func (this GazeTracker) JoinEventLoop() {
+
+}
+
+func (this GazeTracker) StartTracking() {
+
+}
+
+func (this GazeTracker) StopTracking() {
+
+}
+
+func (this GazeTracker) Connected() {
+
+}
+
+func ListUSBEyeTrackers() {
+	//"tobiigaze_list_usb_eye_trackers"
+}
+
+func ConnectedEyeTracker() {
+	//"tobiigaze_get_connected_eye_tracker"
+}
+
+func (this GazeTracker) Close() {
+	this.Disconnect()
+	this.BreakEventLoop()
+	this.JoinEventLoop()
+	this.Destroy()
+}
+
 
 func init() {
 	var err error
