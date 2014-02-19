@@ -1,4 +1,4 @@
-package gobii/gaze
+package gaze
 
 import (
 	"time"

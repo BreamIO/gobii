@@ -1,6 +1,6 @@
 // +build linux
 
-package tobii/gaze
+package gaze
 
 import (
 	"errors"
