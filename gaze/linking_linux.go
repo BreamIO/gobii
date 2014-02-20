@@ -3,6 +3,6 @@
 package gaze
 
 /*
-#cgo LDFLAGS: -Llib -ltobiigazecore -Wl,-rpath=XORIGIN
+#cgo LDFLAGS: -L/home/victorystick/go/bin -ltobiigazecore -Wl,-rpath=/home/victorystick/go/bin
 */
 import "C"
