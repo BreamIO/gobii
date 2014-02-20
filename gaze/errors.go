@@ -1,7 +1,6 @@
 package gaze
 
 /*
-#cgo LDFLAGS: -L/home/victorystick/go/bin -ltobiigazecore -Wl,-rpath=/home/victorystick/go/bin
 #include "tobiigaze.h"
 #include "tobiigaze_error_codes.h"
 */
