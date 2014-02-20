@@ -1,3 +1,5 @@
+// +build windows
+
 package gaze
 
 type txUserParam uintptr

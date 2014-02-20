@@ -1,8 +1,10 @@
+// +build ignore
+
 package gaze
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
 type EyeTracker struct {
@@ -27,7 +29,7 @@ type GazeData struct {
 }
 
 func (d GazeData) String() string {
-	return fmt.Sprintf("{X: %f, Y: %f, Time: %d}", d.X, d.Y, d.Timestamp);
+	return fmt.Sprintf("{X: %f, Y: %f, Time: %d}", d.X, d.Y, d.Timestamp)
 }
 
 func (e *EyeTracker) GetGazeChannel() <-chan GazeData {
@@ -40,7 +42,7 @@ func (e *EyeTracker) GetGazeChannel() <-chan GazeData {
 
 func (e *EyeTracker) Close() {
 	err := wReleaseContext(e.handle)
-	
+
 	if err != nil {
 		panic(err.Error())
 	}
