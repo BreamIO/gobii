@@ -7,11 +7,9 @@ import (
 
 func main() {
 	fmt.Println("USB trackers:")
-	gaze.ListTrackers();
-	/*
-	for _, tracker := range gaze.ListUSBTrackers() {
-		fmt.Println(tracker)
+	//gaze.ListUSBTrackers();
+	list, _ := gaze.USBTrackers()
+	for i, tracker := range list {
+		fmt.Println(i, ": ", tracker)
 	}
-	*/
-	
 }
