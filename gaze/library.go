@@ -166,59 +166,77 @@ type USBInfo C.struct_usb_device_info
 
 func (info USBInfo) SerialNumber() string {
 	//Need to store assertion before taking address of it
-	//Or it thinks I wnat the address of the function call for some reason.
+	//Or it thinks I want the address of the function call for some reason.
 	c_info := C.struct_usb_device_info(info)
 	return C.GoString(C.getSerialNumber(&c_info))
 }
 
 func (info USBInfo) ProductName() string {
 	//Need to store assertion before taking address of it
-	//Or it thinks I wnat the address of the function call for some reason.
+	//Or it thinks I want the address of the function call for some reason.
 	c_info := C.struct_usb_device_info(info)
 	return C.GoString(C.getProductName(&c_info))
 }
 
 func (info USBInfo) PlatformType() string {
 	//Need to store assertion before taking address of it
-	//Or it thinks I wnat the address of the function call for some reason.
+	//Or it thinks I want the address of the function call for some reason.
 	c_info := C.struct_usb_device_info(info)
 	return C.GoString(C.getPlatformType(&c_info))
 }
 
 func (info USBInfo) FirmwareVersion() string {
 	//Need to store assertion before taking address of it
-	//Or it thinks I wnat the address of the function call for some reason.
+	//Or it thinks I want the address of the function call for some reason.
 	c_info := C.struct_usb_device_info(info)
 	return C.GoString(C.getFirmwareVersion(&c_info))
 }
 
-func ListTrackers() error {
+func (info USBInfo) String() string {
+	return fmt.Sprintf("\tName: %s\n\tSerialnumber: %s\n\tPlatform: %s\n\tFirmware: %s", 
+		info.ProductName(), 
+		info.SerialNumber(),
+		info.PlatformType(),
+		info.FirmwareVersion())
+}
+
+func USBTrackers() ([]USBInfo, error) {
 	var err Error
 	capacity := 10
 	var length uint32
-
-	infos := (*C.struct_usb_device_info)(
-		C.malloc(C.getInfoSize() * C.size_t(capacity)))
-
-	C.tobiigaze_list_usb_eye_trackers(infos,
-		C.uint32_t(capacity),
+	
+	infos_void := C.malloc(C.getInfoSize() * C.size_t(capacity))
+	defer C.free(infos_void)
+	infos := (*C.struct_usb_device_info)(infos_void)
+	
+	C.tobiigaze_list_usb_eye_trackers(infos, 
+		C.uint32_t(capacity), 
 		(*C.uint32_t)(&length),
 		err.cPtr())
-
-	var goInfos []C.struct_usb_device_info
+		
+	var goInfos []USBInfo
 	sliceHeader := (*reflect.SliceHeader)((unsafe.Pointer(&goInfos)))
 	sliceHeader.Cap = int(length)
 	sliceHeader.Len = int(length)
 	sliceHeader.Data = uintptr(unsafe.Pointer(infos))
-
-	for i, info := range goInfos {
-		goinfo := USBInfo(info)
-		fmt.Printf("%d: %s, %s\n", i, goinfo.ProductName(), goinfo.SerialNumber())
-	}
-
+	
 	if length == 0 {
-		return err
+		return nil, err
 	}
+	
+	//Transfer data into Go runtime handled memory.
+	result := make([]USBInfo, length, length)
+	copy(result, goInfos)
+	return result, nil;
+}
 
+func ListUSBTrackers() error {
+	list, err := USBTrackers()
+	if err != nil {
+		return err;
+	}
+	for i, info := range list {
+		fmt.Println(i, ": ", info)
+	}
 	return err
 }
