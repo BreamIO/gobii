@@ -9,6 +9,30 @@ package gaze
 size_t getInfoSize() {
 	return sizeof(struct usb_device_info);
 }
+
+// Need this method, or the type is wrong for conversion to GoString.
+// Can't do cast in Go-land.
+char *getSerialNumber(struct usb_device_info *info) {
+	return (char*) info->serialNumber;
+}
+
+// Need this method, or the type is wrong for conversion to GoString.
+// Can't do cast in Go-land.
+char *getProductName(struct usb_device_info *info) {
+	return (char*) info->productName;
+}
+
+// Need this method, or the type is wrong for conversion to GoString.
+// Can't do cast in Go-land.
+char *getPlatformType(struct usb_device_info *info) {
+	return (char*) info->platformType;
+}
+
+// Need this method, or the type is wrong for conversion to GoString.
+// Can't do cast in Go-land.
+char *getFirmwareVersion(struct usb_device_info *info) {
+	return (char*) info->firmwareVersion;
+}
 */
 import "C"
 
@@ -140,6 +164,34 @@ func (e EyeTracker) URL() string {
 
 type USBInfo C.struct_usb_device_info
 
+func (info USBInfo) SerialNumber() string {
+	//Need to store assertion before taking address of it
+	//Or it thinks I wnat the address of the function call for some reason.
+	c_info := C.struct_usb_device_info(info)
+	return C.GoString(C.getSerialNumber(&c_info))
+}
+
+func (info USBInfo) ProductName() string {
+	//Need to store assertion before taking address of it
+	//Or it thinks I wnat the address of the function call for some reason.
+	c_info := C.struct_usb_device_info(info)
+	return C.GoString(C.getProductName(&c_info))
+}
+
+func (info USBInfo) PlatformType() string {
+	//Need to store assertion before taking address of it
+	//Or it thinks I wnat the address of the function call for some reason.
+	c_info := C.struct_usb_device_info(info)
+	return C.GoString(C.getPlatformType(&c_info))
+}
+
+func (info USBInfo) FirmwareVersion() string {
+	//Need to store assertion before taking address of it
+	//Or it thinks I wnat the address of the function call for some reason.
+	c_info := C.struct_usb_device_info(info)
+	return C.GoString(C.getFirmwareVersion(&c_info))
+}
+
 func ListTrackers() error {
 	var err Error
 	capacity := 10
@@ -160,7 +212,8 @@ func ListTrackers() error {
 	sliceHeader.Data = uintptr(unsafe.Pointer(infos))
 
 	for i, info := range goInfos {
-		fmt.Println(i, info)
+		goinfo := USBInfo(info)
+		fmt.Printf("%d: %s, %s\n", i, goinfo.ProductName(), goinfo.SerialNumber())
 	}
 
 	if length == 0 {
