@@ -18,20 +18,6 @@ import (
 	"unsafe"
 )
 
-func ConnectedEyeTracker() (string, error) {
-	url_size := (C.size_t)(256)
-	curl := C.malloc(url_size) //Used by sample code. Does not appear to be a defined length anywhere.
-	defer C.free(curl)
-	var err Error
-	
-	C.tobiigaze_get_connected_eye_tracker((*C.char)(curl), (C.uint32_t)(url_size), err.cPtr())
-	res := C.GoString((*C.char)(curl))
-	if !err.ok() {
-		return res, err
-	}
-	return res, nil
-}
-
 // The version of the library on the form "1.0.2".
 // Is currently "..." on Linux
 func Version() string {
@@ -78,24 +64,36 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	return &EyeTracker{et}, nil
 }
 
-// Attempts to return any available EyeTracker.
+// Gets the URL of any connected EyeTracker.
 // Otherwise returns an error.
-func AnyConnectedEyeTracker() (*EyeTracker, error) {
-	const capacity uint32 = 128
+func AnyConnectedEyeTrackerURL() (string, error) {
+	const capacity uint32 = 256
 	var err Error
 
-	cUrl := (*C.char)(C.malloc(C.size_t(capacity)))
-	defer C.free(unsafe.Pointer(cUrl))
+	url := (*C.char)(C.malloc(C.size_t(capacity)))
+	defer C.free(unsafe.Pointer(url))
 
-	C.tobiigaze_get_connected_eye_tracker((cUrl),
+	C.tobiigaze_get_connected_eye_tracker((url),
 		C.uint32_t(capacity),
 		err.cPtr())
 
 	if !err.ok() {
+		return "", err
+	}
+
+	return C.GoString(url), nil
+}
+
+// Attempts to return any connected EyeTracker.
+// Otherwise returns an error.
+func AnyConnectedEyeTracker() (*EyeTracker, error) {
+	url, err := AnyConnectedEyeTrackerURL()
+
+	if err != nil {
 		return nil, err
 	}
 
-	return EyeTrackerFromURL(C.GoString(cUrl))
+	return EyeTrackerFromURL(url)
 }
 
 // Attempt to connect to the physical eyetracker.
