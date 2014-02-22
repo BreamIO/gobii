@@ -1,3 +1,9 @@
+// Copyright 2014 Bream IO AB. All rights reserved.
+
+// The gaze package contains bindings for the Tobii Technologies AB Gaze SDK.
+// It is used to communicate with a Tobii branded eye tracker.
+// It makes extensive use of Cgo.
+// No trackers was harmed in the making of this package.
 package gaze
 
 /*
