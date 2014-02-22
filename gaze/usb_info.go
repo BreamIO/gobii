@@ -40,8 +40,8 @@ func (info USBInfo) FirmwareVersion() string {
 }
 
 func (info USBInfo) String() string {
-	return fmt.Sprintf("\tName: %s\n\tSerialnumber: %s\n\tPlatform: %s\n\tFirmware: %s", 
-		info.ProductName(), 
+	return fmt.Sprintf("\tName: %s\n\tSerialnumber: %s\n\tPlatform: %s\n\tFirmware: %s",
+		info.ProductName(),
 		info.SerialNumber(),
 		info.PlatformType(),
 		info.FirmwareVersion())
@@ -51,16 +51,16 @@ func USBTrackers() ([]USBInfo, error) {
 	var err Error
 	capacity := 10
 	var length uint32
-	
+
 	infos_void := C.malloc(C.getInfoSize() * C.size_t(capacity))
 	defer C.free(infos_void)
 	infos := (*C.struct_usb_device_info)(infos_void)
-	
-	C.tobiigaze_list_usb_eye_trackers(infos, 
-		C.uint32_t(capacity), 
+
+	C.tobiigaze_list_usb_eye_trackers(infos,
+		C.uint32_t(capacity),
 		(*C.uint32_t)(&length),
 		err.cPtr())
-		
+
 	var goInfos []USBInfo
 	sliceHeader := (*reflect.SliceHeader)((unsafe.Pointer(&goInfos)))
 	sliceHeader.Cap = int(length)
@@ -70,17 +70,17 @@ func USBTrackers() ([]USBInfo, error) {
 	if length == 0 {
 		return nil, err
 	}
-	
+
 	//Transfer data into Go runtime handled memory.
 	result := make([]USBInfo, length, length)
 	copy(result, goInfos)
-	return result, nil;
+	return result, nil
 }
 
 func ListUSBTrackers() error {
 	list, err := USBTrackers()
 	if err != nil {
-		return err;
+		return err
 	}
 	for i, info := range list {
 		fmt.Println(i, ": ", info)
