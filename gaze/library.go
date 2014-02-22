@@ -42,6 +42,20 @@ import (
 	"unsafe"
 )
 
+func ConnectedEyeTracker() (string, error) {
+	url_size := (C.size_t)(256)
+	curl := C.malloc(url_size) //Used by sample code. Does not appear to be a defined length anywhere.
+	defer C.free(curl)
+	var err Error
+	
+	C.tobiigaze_get_connected_eye_tracker((*C.char)(curl), (C.uint32_t)(url_size), err.cPtr())
+	res := C.GoString((*C.char)(curl))
+	if !err.ok() {
+		return res, err
+	}
+	return res, nil
+}
+
 // The version of the library on the form "1.0.2".
 // Is currently "..." on Linux
 func Version() string {
