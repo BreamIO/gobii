@@ -14,6 +14,7 @@ import "C"
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"unsafe"
 )
@@ -86,7 +87,7 @@ func AnyConnectedEyeTrackerURL() (string, error) {
 // Otherwise returns an error.
 func AnyConnectedEyeTracker() (*EyeTracker, error) {
 	url, err := AnyConnectedEyeTrackerURL()
-
+	log.Println(url)
 	if err != nil {
 		return nil, err
 	}

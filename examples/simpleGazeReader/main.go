@@ -2,43 +2,36 @@ package main
 
 import (
 	"fmt"
+	"github.com/zephyyrr/gobii/gaze"
 	"log"
 	"time"
-	"github.com/zephyyrr/gobii/gaze"
 )
 
 func main() {
-	url, err := gaze.AnyConnectedEyeTrackerURL()
-	if err != nil{
-		log.Fatalln(err)
-	}
-	et, err := gaze.EyeTrackerFromURL(url)
-	defer et.Close()
+	log.Println("Creating tracker...")
+	et, err := gaze.AnyConnectedEyeTracker()
+
 	//err = et.onConnectionStateChanged();
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
 
 	defer et.Close()
-	
+	log.Println("Tracker created.")
+	log.Println("Connecting to tracker.")
 	fmt.Printf("Tracker: %#v\n", et)
 
 	checked(et.Connect())
-	
+	log.Println("Connected!")
+
 	//et.startTracking(func (data GazeData) {
 	//	fmt.Println(data)
 	//})
-	
-	// go func(){
-	// 	for point := range gaze {
-	// 		fmt.Println(point);
-	// 	}
-	// }()
 
-	time.Sleep(time.Second*30)
+	time.Sleep(time.Second * 30)
 }
 
-func checked (err error) {
+func checked(err error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
