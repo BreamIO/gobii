@@ -65,7 +65,7 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 
 // Gets the URL of any connected EyeTracker.
 // Otherwise returns an error.
-func AnyConnectedEyeTrackerURL() (string, error) {
+func AnyEyeTrackerURL() (string, error) {
 	const capacity uint32 = 256
 	var err Error
 
@@ -85,8 +85,8 @@ func AnyConnectedEyeTrackerURL() (string, error) {
 
 // Attempts to return any connected EyeTracker.
 // Otherwise returns an error.
-func AnyConnectedEyeTracker() (*EyeTracker, error) {
-	url, err := AnyConnectedEyeTrackerURL()
+func AnyEyeTracker() (*EyeTracker, error) {
+	url, err := AnyEyeTrackerURL()
 	log.Println(url)
 	if err != nil {
 		return nil, err

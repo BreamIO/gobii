@@ -9,7 +9,7 @@ import (
 
 func main() {
 	log.Println("Creating tracker...")
-	et, err := gaze.AnyConnectedEyeTracker()
+	et, err := gaze.AnyEyeTracker()
 
 	//err = et.onConnectionStateChanged();
 	if err != nil {
