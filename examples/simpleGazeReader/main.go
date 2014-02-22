@@ -1,3 +1,6 @@
+//Copyright 2014 Bream IO AB, All rights reserved
+
+// Example showing how to access a tracker and getting data from it.
 package main
 
 import (

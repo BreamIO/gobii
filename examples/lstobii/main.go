@@ -1,3 +1,8 @@
+//Copyright 2014 Bream IO AB. All rights reserved.
+
+// Simple packaged that demonstrates how to list connected eye trackers
+// Can be used as a debugging tool to detect what trackers is actually detected by the system
+// Only lists USB trackers and not TCP-over-USB trackers.
 package main
 
 import (
