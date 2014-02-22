@@ -65,6 +65,7 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	var err Error
 
 	cUrl := C.CString(url)
+	defer C.free(unsafe.Pointer(cUrl))
 
 	et := C.tobiigaze_create(cUrl, err.cPtr())
 
