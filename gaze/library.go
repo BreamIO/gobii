@@ -81,9 +81,9 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 
 // Attempts to return any available EyeTracker.
 // Otherwise returns an error.
-func AnyEyeTracker() (*EyeTracker, error) {
+func AnyConnectedEyeTracker() (*EyeTracker, error) {
+	const capacity uint32 = 128
 	var err Error
-	var capacity uint32 = 128
 
 	cUrl := (*C.char)(C.malloc(C.size_t(capacity)))
 	defer C.free(unsafe.Pointer(cUrl))
@@ -111,6 +111,18 @@ func (e EyeTracker) Connect() error {
 	}
 
 	return err
+}
+
+// Closes the connection to the EyeTracker
+// Implements Closer interface
+func (e EyeTracker) Close() error {
+	if e.IsConnected() {
+		C.tobiigaze_disconnect(e.cPtr())
+	}
+
+	C.tobiigaze_destroy(e.cPtr())
+
+	return nil
 }
 
 // Checks if the eye tracker has been connected.
