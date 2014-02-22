@@ -51,11 +51,9 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	var err Error
 
 	cUrl := C.CString(url)
+	defer C.free(unsafe.Pointer(cUrl))
 
 	et := C.tobiigaze_create(cUrl, err.cPtr())
-
-	// TODO: does create call copy the string?
-	C.free(unsafe.Pointer(cUrl))
 
 	if !err.ok() {
 		return nil, err
