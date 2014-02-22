@@ -78,6 +78,26 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	return &EyeTracker{et}, nil
 }
 
+// Attempts to return any available EyeTracker.
+// Otherwise returns an error.
+func AnyEyeTracker() (*EyeTracker, error) {
+	var err Error
+	var capacity uint32 = 128
+
+	cUrl := (*C.char)(C.malloc(C.size_t(capacity)))
+	defer C.free(unsafe.Pointer(cUrl))
+
+	C.tobiigaze_get_connected_eye_tracker((cUrl),
+		C.uint32_t(capacity),
+		err.cPtr())
+
+	if !err.ok() {
+		return nil, err
+	}
+
+	return EyeTrackerFromURL(C.GoString(cUrl))
+}
+
 // Attempt to connect to the physical eyetracker.
 // Blocking function which may return an error.
 func (e EyeTracker) Connect() error {
