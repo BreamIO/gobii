@@ -9,30 +9,6 @@ package gaze
 size_t getInfoSize() {
 	return sizeof(struct usb_device_info);
 }
-
-// Need this method, or the type is wrong for conversion to GoString.
-// Can't do cast in Go-land.
-char *getSerialNumber(struct usb_device_info *info) {
-	return (char*) info->serialNumber;
-}
-
-// Need this method, or the type is wrong for conversion to GoString.
-// Can't do cast in Go-land.
-char *getProductName(struct usb_device_info *info) {
-	return (char*) info->productName;
-}
-
-// Need this method, or the type is wrong for conversion to GoString.
-// Can't do cast in Go-land.
-char *getPlatformType(struct usb_device_info *info) {
-	return (char*) info->platformType;
-}
-
-// Need this method, or the type is wrong for conversion to GoString.
-// Can't do cast in Go-land.
-char *getFirmwareVersion(struct usb_device_info *info) {
-	return (char*) info->firmwareVersion;
-}
 */
 import "C"
 
@@ -71,7 +47,7 @@ func (e EyeTracker) cPtr() *C.tobiigaze_eye_tracker {
 //   "tet-tcp://XXX.XXX.XXX.XXX"
 //   "tet-usb://XXX.XXX.XXX.XXX"
 // ("tet" likely stands for Tobii Eye Tracker)
-func CreateEyeTracker(url string) (*EyeTracker, error) {
+func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	var err Error
 
 	cUrl := C.CString(url)
@@ -88,6 +64,8 @@ func CreateEyeTracker(url string) (*EyeTracker, error) {
 	return &EyeTracker{et}, nil
 }
 
+// Attempt to connect to the physical eyetracker.
+// Blocking function which may return an error.
 func (e EyeTracker) Connect() error {
 	var err Error
 
@@ -100,6 +78,7 @@ func (e EyeTracker) Connect() error {
 	return err
 }
 
+// Checks if the eye tracker has been connected.
 func (e EyeTracker) IsConnected() bool {
 	return C.tobiigaze_is_connected(e.cPtr()) == 1
 }
@@ -149,7 +128,8 @@ func (e EyeTracker) Info() (EyeTrackerInfo, error) {
 	return info, err
 }
 
-// Returns the URL of the EyeTracker, or
+// Returns the URL of the EyeTracker, or if
+// an error occurs, the empty string ("").
 func (e EyeTracker) URL() string {
 	var err Error
 
@@ -164,32 +144,24 @@ func (e EyeTracker) URL() string {
 
 type USBInfo C.struct_usb_device_info
 
+func (info USBInfo) cPtr() *C.struct_usb_device_info {
+	return (*C.struct_usb_device_info)(&info)
+}
+
 func (info USBInfo) SerialNumber() string {
-	//Need to store assertion before taking address of it
-	//Or it thinks I want the address of the function call for some reason.
-	c_info := C.struct_usb_device_info(info)
-	return C.GoString(C.getSerialNumber(&c_info))
+	return C.GoString((*C.char)(&info.cPtr().serialNumber[0]))
 }
 
 func (info USBInfo) ProductName() string {
-	//Need to store assertion before taking address of it
-	//Or it thinks I want the address of the function call for some reason.
-	c_info := C.struct_usb_device_info(info)
-	return C.GoString(C.getProductName(&c_info))
+	return C.GoString((*C.char)(&info.cPtr().productName[0]))
 }
 
 func (info USBInfo) PlatformType() string {
-	//Need to store assertion before taking address of it
-	//Or it thinks I want the address of the function call for some reason.
-	c_info := C.struct_usb_device_info(info)
-	return C.GoString(C.getPlatformType(&c_info))
+	return C.GoString((*C.char)(&info.cPtr().platformType[0]))
 }
 
 func (info USBInfo) FirmwareVersion() string {
-	//Need to store assertion before taking address of it
-	//Or it thinks I want the address of the function call for some reason.
-	c_info := C.struct_usb_device_info(info)
-	return C.GoString(C.getFirmwareVersion(&c_info))
+	return C.GoString((*C.char)(&info.cPtr().firmwareVersion[0]))
 }
 
 func (info USBInfo) String() string {
@@ -219,7 +191,7 @@ func USBTrackers() ([]USBInfo, error) {
 	sliceHeader.Cap = int(length)
 	sliceHeader.Len = int(length)
 	sliceHeader.Data = uintptr(unsafe.Pointer(infos))
-	
+
 	if length == 0 {
 		return nil, err
 	}

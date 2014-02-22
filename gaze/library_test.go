@@ -11,7 +11,7 @@ func TestVersion(t *testing.T) {
 func TestCreateEyetracker(t *testing.T) {
 	const etURL = "tet-tcp://172.68.195.1"
 
-	et, err := CreateEyeTracker(etURL)
+	et, err := EyeTrackerFromURL(etURL)
 
 	if err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestCreateEyetracker(t *testing.T) {
 }
 
 func TestDiscovery(t *testing.T) {
-	err := ListTrackers()
+	_, err := USBTrackers()
 
 	if err != nil {
 		t.Fatal(err)
