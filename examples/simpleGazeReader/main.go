@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	//"time"
+	"time"
 	"github.com/zephyyrr/gobii/gaze"
 )
 
 func main() {
-	url, err := gaze.ConnectedEyeTracker()
+	url, err := gaze.AnyConnectedEyeTrackerURL()
 	if err != nil{
 		log.Fatalln(err)
 	}
