@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Gaze version:", gaze.Version())
 	fmt.Println("USB trackers:")
 	//gaze.ListUSBTrackers();
 	list, _ := gaze.USBTrackers()
