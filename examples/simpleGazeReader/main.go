@@ -2,27 +2,36 @@ package main
 
 import (
 	"fmt"
-	"time"
-	tobii "github.com/zephyyrr/gobii"
+	"log"
+	//"time"
+	"github.com/zephyyrr/gobii/gaze"
 )
 
 func main() {
-	et, err := tobii.NewEyeTracker()
+	url, err := gaze.ConnectedEyeTracker()
+	if err != nil{
+		log.Fatalln(err)
+	}
+	et, err := gaze.EyeTrackerFromURL(url)
 	defer et.Close()
 	//err = et.onConnectionStateChanged();
 	if err != nil {
-		fmt.Println("Error:",err)
-		return
+		log.Fatalln("Error:",err)
 	}
 	
 	fmt.Printf("Tracker: %#v\n", et)
-	gaze := et.GetGazeChannel();
+	checked(et.Connect())
 	
-	go func(){
-		for point := range gaze {
-			fmt.Println(point);
-		}
-	}()
+	//et.startTracking(func (data GazeData) {
+	//	fmt.Println(data)
+	//})
 	
 	time.Sleep(time.Second*30);
+	*/
+}
+
+func checked (err error) {
+	if err != nil {
+		log.Fatalln(err);
+	}
 }
