@@ -64,16 +64,54 @@ func (ed EyeData) GazePointOnDisplay() Point2D {
 	return Point2D((C.struct_tobiigaze_point_2d)(ed.cPtr().gaze_point_on_display_normalized))
 }
 
+// Golang name of the Tobii Gaze SDK point_3d struct
+//
+// It contains three float64s (double),
+// one for each axis in a three dimensional
+// carthesian coordinate system (x, y, z).
 type Point3D C.struct_tobiigaze_point_3d
 
+func (p Point3D) cPtr() *C.struct_tobiigaze_point_3d {
+	return (*C.struct_tobiigaze_point_3d)(&p)
+}
+
+func (p Point3D) X() float64 {
+	return float64((C.double)(p.cPtr().x))
+}
+
+func (p Point3D) Y() float64 {
+	return float64((C.double)(p.cPtr().y))
+}
+
+func (p Point3D) Z() float64 {
+	return float64((C.double)(p.cPtr().z))
+}
+
+// Golang name of the Tobii Gaze SDK point_3d struct
+//
+// It contains two float64s (double),
+// one for each axis in a two dimensional
+// carthesian coordinate system (x, y).
 type Point2D C.struct_tobiigaze_point_2d
+
+func (p Point2D) cPtr() *C.struct_tobiigaze_point_2d {
+	return (*C.struct_tobiigaze_point_2d)(&p)
+}
+
+func (p Point2D) X() float64 {
+	return float64((C.double)(p.cPtr().x))
+}
+
+func (p Point2D) Y() float64 {
+	return float64((C.double)(p.cPtr().y))
+}
 
 type TrackingStatus int
 
 // The possible gaze tracking statuses.
 // Taken from tobiigaze_data_types.h
 const (
-	NoEyesTracked                = TrackingStatus(iota)
+	NoEyesTracked = TrackingStatus(iota)
 	BothEyesTracked
 	OnlyLeftEyeTracked
 	OneEyeTrackedProbablyLeft
