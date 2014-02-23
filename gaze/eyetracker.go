@@ -17,8 +17,8 @@ import (
 //
 // An eye tracker is not some children's toy.
 // It is a real piece of hardware.
-// We (and Tobii) do our best here to make sure stuff works, 
-// but you as a programmer need to understand that exceptions 
+// We (and Tobii) do our best here to make sure stuff works,
+// but you as a programmer need to understand that exceptions
 // (or the nearest equivalent) is not really an exception.
 // Stuff will happen. Deal with it.
 //
@@ -34,7 +34,7 @@ type EyeTracker struct {
 // Then you connect to it using Connect.
 // At this point, defer a Close().
 // Then you need to StartTracking.
-// Give us a function of the TrackerFunc type and we handle the rest.
+// Give us a function of the GazeFunc type and we handle the rest.
 func ExampleEyeTracker() {
 	et, err := AnyEyeTracker()
 	if err != nil {
@@ -147,7 +147,7 @@ func (e EyeTracker) IsConnected() bool {
 }
 
 // A settable option for the eye tracker
-// 
+//
 // Can be set using the "SetOption" method of EyeTrackers.
 type EyeTrackerOption C.tobiigaze_option
 
@@ -187,6 +187,10 @@ func (e EyeTracker) URL() string {
 	}
 
 	return ""
+}
+
+func (e EyeTracker) StartTracking(callback GazeFunc) {
+
 }
 
 // Go level abstraction for the device_info struct.
@@ -236,3 +240,7 @@ func (e EyeTracker) Info() (EyeTrackerInfo, error) {
 
 	return info, err
 }
+
+// This type is used for callbacks inserted into
+// the EyeTracker for handeling incoming GazeData points.
+type GazeFunc func(data GazeData)
