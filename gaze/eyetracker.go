@@ -116,6 +116,14 @@ func AnyEyeTracker() (*EyeTracker, error) {
 func (e EyeTracker) Connect() error {
 	var err Error
 
+	go func() {
+		var err Error
+
+		C.tobiigaze_run_event_loop(e.cPtr(), err.cPtr())
+
+		// log error?
+	}()
+
 	C.tobiigaze_connect(e.cPtr(), err.cPtr())
 
 	if err.ok() {
