@@ -1,6 +1,6 @@
-//Copyright 2014 Bream IO AB, All rights reserved
+// Copyright 2014 Bream IO AB, All rights reserved.
 
-// Example showing how to access a tracker and getting data from it.
+// Example showing how to access a tracker and get data from it.
 package main
 
 import (
@@ -14,7 +14,6 @@ func main() {
 	log.Println("Creating tracker...")
 	et, err := gaze.AnyEyeTracker()
 
-	//err = et.onConnectionStateChanged();
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
@@ -22,16 +21,20 @@ func main() {
 	defer et.Close()
 	log.Println("Tracker created.")
 	log.Println("Connecting to tracker.")
-	fmt.Printf("Tracker: %#v\n", et)
 
 	checked(et.Connect())
+
 	log.Println("Connected!")
 
-	log.Println(et.Info())
+	info, err := et.Info()
 
-	//et.startTracking(func (data GazeData) {
-	//	fmt.Println(data)
-	//})
+	checked(err)
+
+	log.Println(info)
+
+	et.StartTracking(func (data gaze.GazeData) {
+		fmt.Println(data)
+	})
 
 	time.Sleep(time.Second * 30)
 }
