@@ -190,7 +190,22 @@ func (e EyeTracker) URL() string {
 }
 
 func (e EyeTracker) StartTracking(callback GazeFunc) {
+/*	var err Error
 
+	callback := (C.tobiigaze_gaze_listener)(func (d *C.tobiigaze_gaze_data,
+		ext *C.tobiigaze_gaze_data_extensions,
+		userData uintptr) {
+
+		cb(gazeDataFromC(d))
+	})
+
+	C.tobiigaze_start_tracking(e.cPtr(), &callback, err.cPtr(), nil)
+	
+	if err.ok() {
+		return nil
+	}
+	
+	return err*/
 }
 
 // Go level abstraction for the device_info struct.
