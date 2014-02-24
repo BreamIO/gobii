@@ -9,6 +9,7 @@ package gaze
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"unsafe"
 )
@@ -115,6 +116,10 @@ func AnyEyeTracker() (*EyeTracker, error) {
 // Blocking function which may return an error.
 func (e EyeTracker) Connect() error {
 	var err Error
+
+	if e.IsConnected() {
+		return Error(C.TOBIIGAZE_ERROR_ALREADY_CONNECTED)
+	}
 
 	go func() {
 		var err Error
@@ -248,6 +253,15 @@ func (e EyeTrackerInfo) Generation() string {
 // running on the tracker.
 func (e EyeTrackerInfo) FirmwareVersion() string {
 	return C.GoString((*C.char)(&e.cPtr().firmware_version[0]))
+}
+
+// Returns a print-friendly string representation of the info.
+func (e EyeTrackerInfo) String() string {
+	return fmt.Sprintf("\tModel: %s\n\tSerialnumber: %s\n\tGeneration: %s\n\tFirmware: %s",
+		e.Model(),
+		e.SerialNumber(),
+		e.Generation(),
+		e.FirmwareVersion())
 }
 
 // Gets a Go style EyeTrackerInfo object or an error
