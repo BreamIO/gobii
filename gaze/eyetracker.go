@@ -2,10 +2,12 @@ package gaze
 
 /*
 #include <stdlib.h>
+#include <stdio.h>
 #include "tobiigaze.h"
 #include "tobiigaze_ext.h"
 #include "tobiigaze_data_types.h"
 #include "tobiigaze_discovery.h"
+#include "callbacks.h"
 */
 import "C"
 
@@ -203,27 +205,32 @@ func (e EyeTracker) URL() string {
 	return ""
 }
 
+//export exportedTrackingCallback
 // Callback reused by all trackers. Warning! Dark magic!
 //
 // data has to be copied to be persisted.
 // ext is currently not used.
 // userData will allways be a pointer to an EyeTracker instance.
-var trackingCallback = func(data *C.struct_tobiigaze_gaze_data,
+func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
 		ext *C.struct_tobiigaze_gaze_data_extension,
-		userData uintptr) {
+		userData unsafe.Pointer) {
 
 	//et := (*EyeTracker)(unsafe.Pointer(userData))
-	fmt.Println((*GazeData)(data))
+	//fmt.Println((*GazeData)(data))
+	fmt.Println("Work?")
 }
+
+var trackingCallback = exportedTrackingCallback
 
 // The callback parameter is now silently ignored.
 func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 	var err Error
 
 	C.tobiigaze_start_tracking(e.cPtr(),
-		(C.tobiigaze_gaze_listener)(unsafe.Pointer(&trackingCallback)),
+		//(C.tobiigaze_gaze_listener)(unsafe.Pointer(&trackingCallback)),
+		C.breamio_get_listener(),
 		err.cPtr(),
-		unsafe.Pointer(e))
+		nil) //unsafe.Pointer(e))
 	
 	if err.ok() {
 		return nil
