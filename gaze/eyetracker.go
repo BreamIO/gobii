@@ -4,6 +4,7 @@ package gaze
 #include <stdlib.h>
 #include "tobiigaze.h"
 #include "tobiigaze_ext.h"
+#include "tobiigaze_data_types.h"
 #include "tobiigaze_discovery.h"
 */
 import "C"
@@ -202,23 +203,33 @@ func (e EyeTracker) URL() string {
 	return ""
 }
 
-func (e EyeTracker) StartTracking(callback GazeFunc) {
-/*	var err Error
-
-	callback := (C.tobiigaze_gaze_listener)(func (d *C.tobiigaze_gaze_data,
-		ext *C.tobiigaze_gaze_data_extensions,
+// Callback reused by all trackers. Warning! Dark magic!
+//
+// data has to be copied to be persisted.
+// ext is currently not used.
+// userData will allways be a pointer to an EyeTracker instance.
+var trackingCallback = func(data *C.struct_tobiigaze_gaze_data,
+		ext *C.struct_tobiigaze_gaze_data_extension,
 		userData uintptr) {
 
-		cb(gazeDataFromC(d))
-	})
+	//et := (*EyeTracker)(unsafe.Pointer(userData))
+	fmt.Println((*GazeData)(data))
+}
 
-	C.tobiigaze_start_tracking(e.cPtr(), &callback, err.cPtr(), nil)
+// The callback parameter is now silently ignored.
+func (e *EyeTracker) StartTracking(callback GazeFunc) error {
+	var err Error
+
+	C.tobiigaze_start_tracking(e.cPtr(),
+		(C.tobiigaze_gaze_listener)(unsafe.Pointer(&trackingCallback)),
+		err.cPtr(),
+		unsafe.Pointer(e))
 	
 	if err.ok() {
 		return nil
 	}
 	
-	return err*/
+	return err
 }
 
 // Go level abstraction for the device_info struct.
