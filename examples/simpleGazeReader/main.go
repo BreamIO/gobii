@@ -27,6 +27,8 @@ func main() {
 	checked(et.Connect())
 	log.Println("Connected!")
 
+	log.Println(et.Info())
+
 	//et.startTracking(func (data GazeData) {
 	//	fmt.Println(data)
 	//})
