@@ -216,8 +216,8 @@ func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
 		userData unsafe.Pointer) {
 
 	//et := (*EyeTracker)(unsafe.Pointer(userData))
-	//fmt.Println((*GazeData)(data))
-	fmt.Println("Work?")
+	fmt.Println(GazeDataFromC(data))
+	//fmt.Println("Work?")
 }
 
 var trackingCallback = exportedTrackingCallback
