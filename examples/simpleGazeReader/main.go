@@ -32,8 +32,11 @@ func main() {
 
 	log.Println(info)
 
-	et.StartTracking(func (data gaze.GazeData) {
-		fmt.Println(data)
+	et.StartTracking(func (data *gaze.GazeData) {
+		ts := data.TrackingStatus()
+		if ts >= gaze.BothEyesTracked && ts != gaze.OneEyeTrackedUnknownWhich {
+			fmt.Println(data)
+		}
 	})
 
 	time.Sleep(time.Second * 30)
