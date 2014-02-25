@@ -31,6 +31,7 @@ import (
 
 type EyeTracker struct {
 	handle *C.tobiigaze_eye_tracker
+	gazeCallback GazeFunc
 }
 
 // This is what you are really looking for.
@@ -76,7 +77,7 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 		return nil, err
 	}
 
-	return &EyeTracker{et}, nil
+	return &EyeTracker{et, nil}, nil
 }
 
 // Gets the URL of any connected EyeTracker.
@@ -210,14 +211,16 @@ func (e EyeTracker) URL() string {
 //
 // data has to be copied to be persisted.
 // ext is currently not used.
-// userData will allways be a pointer to an EyeTracker instance.
+// userData will always be a pointer to an EyeTracker instance.
 func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
-		ext *C.struct_tobiigaze_gaze_data_extension,
-		userData unsafe.Pointer) {
+	ext *C.struct_tobiigaze_gaze_data_extension,
+	userData unsafe.Pointer) {
 
-	//et := (*EyeTracker)(unsafe.Pointer(userData))
-	fmt.Println(GazeDataFromC(data))
-	//fmt.Println("Work?")
+	et := (*EyeTracker)(unsafe.Pointer(userData))
+	//fmt.Println(GazeDataFromC(data))
+	if et.gazeCallback != nil {
+		et.gazeCallback(GazeDataFromC(data))
+	}
 }
 
 var trackingCallback = exportedTrackingCallback
@@ -225,17 +228,17 @@ var trackingCallback = exportedTrackingCallback
 // The callback parameter is now silently ignored.
 func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 	var err Error
-
+	e.gazeCallback = callback
 	C.tobiigaze_start_tracking(e.cPtr(),
 		//(C.tobiigaze_gaze_listener)(unsafe.Pointer(&trackingCallback)),
 		C.breamio_get_listener(),
 		err.cPtr(),
-		nil) //unsafe.Pointer(e))
-	
+		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
+
 	if err.ok() {
 		return nil
 	}
-	
+
 	return err
 }
 
@@ -298,4 +301,4 @@ func (e EyeTracker) Info() (EyeTrackerInfo, error) {
 
 // This type is used for callbacks inserted into
 // the EyeTracker for handeling incoming GazeData points.
-type GazeFunc func(data GazeData)
+type GazeFunc func(data *GazeData)

@@ -14,10 +14,10 @@ import (
 A golang representation of a tobiigaze_gaze_data
 */
 type GazeData struct {
-	timestamp time.Time
+	timestamp      time.Time
 	trackingstatus TrackingStatus
-	left EyeData
-	right EyeData
+	left           EyeData
+	right          EyeData
 }
 
 func GazeDataFromC(c_data *C.struct_tobiigaze_gaze_data) (data *GazeData) {
@@ -51,7 +51,7 @@ func (data GazeData) Right() EyeData {
 
 type EyeData struct {
 	eyePositionFromEyeTracker,
-	eyePositionInTrackBox, 
+	eyePositionInTrackBox,
 	gazePointFromEyeTracker Point3D
 	gazePointOnDisplay Point2D
 }
