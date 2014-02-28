@@ -6,11 +6,9 @@ import (
 )
 
 // This is what you are really looking for.
-// The basic use of it is to first create one.
-// Then you connect to it using Connect.
-// At this point, defer a Close().
-// Then you need to StartTracking.
-// Give us a function of the GazeFunc type and we handle the rest.
+//
+// The example below shows how to use the a tracker.
+// The expected output, if a tracker is connected, is the points on the screen where your eyes are looking.
 func ExampleEyeTracker() {
 	et, err := gaze.AnyEyeTracker()
 	if err != nil {
@@ -20,7 +18,7 @@ func ExampleEyeTracker() {
 	}
 	et.Connect()
 	defer et.Close()
-	//et.StartTracking(func(data ETData) {
-	//	log.Println(data)
-	//})
+	et.StartTracking(func(data ETData) {
+		fmt.Println(data)
+	})
 }
