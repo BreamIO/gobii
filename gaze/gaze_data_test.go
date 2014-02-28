@@ -1,13 +1,14 @@
-package gaze
+package gaze_test
 
 import (
 	"testing"
+	"github.com/zephyyrr/gobii/gaze"
 )
 
 func TestGazeFromC(t *testing.T) {
-	_struct := genTestStruct()
-	defer freeTestStruct(_struct)
-	data := GazeDataFromC(_struct)
+	_struct := gaze.GenTestStruct()
+	defer gaze.FreeTestStruct(_struct)
+	data := gaze.GazeDataFromC(_struct)
 	
 	//Check timestamp
 	if data.Timestamp().Unix() != 1337 {
@@ -15,8 +16,8 @@ func TestGazeFromC(t *testing.T) {
 	}
 	
 	//Check status
-	if data.TrackingStatus() != BothEyesTracked {
-		t.Errorf("TrackingStatus was %d, expected %d", data.TrackingStatus(), BothEyesTracked)
+	if data.TrackingStatus() != gaze.BothEyesTracked {
+		t.Errorf("TrackingStatus was %d, expected %d", data.TrackingStatus(), gaze.BothEyesTracked)
 	}
 }
 
@@ -39,9 +40,9 @@ func TestLeftFromC(t *testing.T) {
 		c_data.left.gazePointOnDisplay.y = 0.45745
 	*/
 
-	_struct := genTestStruct()
-	defer freeTestStruct(_struct)
-	left := GazeDataFromC(_struct).Left()
+	_struct := gaze.GenTestStruct()
+	defer gaze.FreeTestStruct(_struct)
+	left := gaze.GazeDataFromC(_struct).Left()
 	
 	epfet := left.EyePositionFromEyeTracker()
 	assertEqFloat64(t, epfet.X(), 3.2552, "left.EyePositionFromEyeTracker().X()")
@@ -82,9 +83,9 @@ func TestRightFromC(t *testing.T) {
 	c_data.right.gaze_point_on_display_normalized.y = 0.65745
 */
 
-	_struct := genTestStruct()
-	defer freeTestStruct(_struct)
-	right := GazeDataFromC(_struct).Right()
+	_struct := gaze.GenTestStruct()
+	defer gaze.FreeTestStruct(_struct)
+	right := gaze.GazeDataFromC(_struct).Right()
 	
 	epfet := right.EyePositionFromEyeTracker()
 	assertEqFloat64(t, epfet.X(), 4.2552, "right.EyePositionFromEyeTracker().X()")

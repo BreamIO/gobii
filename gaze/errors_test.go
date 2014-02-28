@@ -1,7 +1,8 @@
-package gaze
+package gaze_test
 
 import (
 	"testing"
+	"github.com/zephyyrr/gobii/gaze"
 )
 
 var errors = []int{
@@ -53,14 +54,14 @@ var errorStrings = []string{
 }
 
 func TestError(t *testing.T) {
-	if !Error(0).ok() {
+	if !gaze.Error(0).Ok() {
 		t.Fatal("Error code 0 should be an error.")
 	}
 
 	for i, e := range errors {
-		if Error(e).Error() != errorStrings[i] {
+		if gaze.Error(e).Error() != errorStrings[i] {
 			t.Fatalf("Expected '%s' to be '%s'\n",
-				Error(e), errorStrings[i])
+				gaze.Error(e), errorStrings[i])
 		}
 	}
 }
