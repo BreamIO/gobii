@@ -13,7 +13,6 @@ import "C"
 
 import (
 	"fmt"
-	"log"
 	"unsafe"
 )
 
@@ -32,25 +31,6 @@ import (
 type EyeTracker struct {
 	handle *C.tobiigaze_eye_tracker
 	gazeCallback GazeFunc
-}
-
-// This is what you are really looking for.
-// The basic use of it is to first create one.
-// Then you connect to it using Connect.
-// At this point, defer a Close().
-// Then you need to StartTracking.
-// Give us a function of the GazeFunc type and we handle the rest.
-func ExampleEyeTracker() {
-	et, err := AnyEyeTracker()
-	if err != nil {
-		log.Fatalln("AHHHH!!! ERROR!!!")
-		log.Fatalln(err)
-	}
-	et.Connect()
-	defer et.Close()
-	//et.StartTracking(func(data ETData) {
-	//	log.Println(data)
-	//})
 }
 
 // Get a C-style pointer
