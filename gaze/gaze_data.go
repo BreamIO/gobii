@@ -1,13 +1,19 @@
 package gaze
 
 /*
+#include <stdlib.h>
 #include "tobiigaze_data_types.h"
+
+size_t sizeofGazedata() {
+	return sizeof(struct tobiigaze_gaze_data);
+}
 */
 import "C"
 
 import (
 	"fmt"
 	"time"
+	"unsafe"
 )
 
 /*
@@ -153,3 +159,56 @@ const (
 	OneEyeTrackedProbablyRight
 	OnlyRightEye_Tracked
 )
+
+
+// This function can be used to unit test this file.
+// Go test tool does not allow Cgo in the tests, but since a c struct is needed, we will simply create it here, 
+// and return it for direct use in the GazeDataFromC function.
+// Do not forget to free it after use by calling 
+// 		FreeTestStruct(c_data)
+func GenTestStruct() *C.struct_tobiigaze_gaze_data {
+	c_data := (*C.struct_tobiigaze_gaze_data)(C.malloc(C.sizeofGazedata()))
+	
+	c_data.timestamp = (C.uint64_t)(1337)
+	c_data.tracking_status = (C.tobiigaze_tracking_status)(BothEyesTracked)
+	
+	//Left
+	c_data.left.eye_position_from_eye_tracker_mm.x = 3.2552
+	c_data.left.eye_position_from_eye_tracker_mm.y = 4.5342
+	c_data.left.eye_position_from_eye_tracker_mm.z = 5.75342
+	
+	c_data.left.eye_position_in_track_box_normalized.x = 0.25342
+	c_data.left.eye_position_in_track_box_normalized.y = 0.5324
+	c_data.left.eye_position_in_track_box_normalized.z  = 0.46546
+	
+	c_data.left.gaze_point_from_eye_tracker_mm.x = 0.25145
+	c_data.left.gaze_point_from_eye_tracker_mm.y = 32.54654
+	c_data.left.gaze_point_from_eye_tracker_mm.z = 2.75876
+	
+	c_data.left.gaze_point_on_display_normalized.x = 0.12123
+	c_data.left.gaze_point_on_display_normalized.y = 0.45745
+	
+	//Right
+	c_data.right.eye_position_from_eye_tracker_mm.x = 4.2552
+	c_data.right.eye_position_from_eye_tracker_mm.y = 5.5342
+	c_data.right.eye_position_from_eye_tracker_mm.z = 6.75342
+	
+	c_data.right.eye_position_in_track_box_normalized.x = 0.35342
+	c_data.right.eye_position_in_track_box_normalized.y = 0.4324
+	c_data.right.eye_position_in_track_box_normalized.z  = 0.16546
+	
+	c_data.right.gaze_point_from_eye_tracker_mm.x = 0.45145
+	c_data.right.gaze_point_from_eye_tracker_mm.y = 35.54654
+	c_data.right.gaze_point_from_eye_tracker_mm.z = 2.85876
+	
+	c_data.right.gaze_point_on_display_normalized.x = 0.92123
+	c_data.right.gaze_point_on_display_normalized.y = 0.65745
+	
+	return c_data
+}
+
+//Function to free a struct given by 
+//		GenTestStruct()
+func FreeTestStruct(c_data *C.struct_tobiigaze_gaze_data) {
+	C.free(unsafe.Pointer(c_data))
+}

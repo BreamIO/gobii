@@ -73,7 +73,7 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 
 	et := C.tobiigaze_create(cUrl, err.cPtr())
 
-	if !err.ok() {
+	if !err.Ok() {
 		return nil, err
 	}
 
@@ -94,7 +94,7 @@ func AnyEyeTrackerURL() (string, error) {
 		C.uint32_t(capacity),
 		err.cPtr())
 
-	if !err.ok() {
+	if !err.Ok() {
 		return "", err
 	}
 
@@ -135,7 +135,7 @@ func (e EyeTracker) Connect() error {
 
 	C.tobiigaze_connect(e.cPtr(), err.cPtr())
 
-	if err.ok() {
+	if err.Ok() {
 		return nil
 	}
 
@@ -185,7 +185,7 @@ func (e EyeTracker) SetOption(o EyeTrackerOption, value int) error {
 	C.tobiigaze_set_option(e.cPtr(), o.cTyp(),
 		unsafe.Pointer(&value), err.cPtr())
 
-	if err.ok() {
+	if err.Ok() {
 		return nil
 	}
 
@@ -199,7 +199,7 @@ func (e EyeTracker) URL() string {
 
 	str := C.GoString(C.tobiigaze_get_url(e.cPtr(), err.cPtr()))
 
-	if err.ok() {
+	if err.Ok() {
 		return str
 	}
 
@@ -235,7 +235,7 @@ func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 		err.cPtr(),
 		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
 
-	if err.ok() {
+	if err.Ok() {
 		return nil
 	}
 
@@ -292,7 +292,7 @@ func (e EyeTracker) Info() (EyeTrackerInfo, error) {
 
 	C.tobiigaze_get_device_info(e.cPtr(), info.cPtr(), err.cPtr())
 
-	if err.ok() {
+	if err.Ok() {
 		return info, nil
 	}
 

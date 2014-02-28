@@ -17,6 +17,6 @@ func (e *Error) cPtr() *C.tobiigaze_error_code {
 	return (*C.tobiigaze_error_code)(e)
 }
 
-func (e Error) ok() bool {
+func (e Error) Ok() bool {
 	return e == C.TOBIIGAZE_ERROR_SUCCESS
 }
