@@ -18,7 +18,7 @@ func ExampleEyeTracker() {
 	}
 	et.Connect()
 	defer et.Close()
-	et.StartTracking(func(data ETData) {
+	et.StartTracking(func(data *gaze.GazeData) {
 		fmt.Println(data)
 	})
 }
