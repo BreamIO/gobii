@@ -29,7 +29,7 @@ import (
 // Good Luck!
 
 type EyeTracker struct {
-	handle *C.tobiigaze_eye_tracker
+	handle       *C.tobiigaze_eye_tracker
 	gazeCallback GazeFunc
 }
 

@@ -1,8 +1,8 @@
 package gaze_test
 
 import (
-	"testing"
 	"github.com/zephyyrr/gobii/gaze"
+	"testing"
 )
 
 var errors = []int{

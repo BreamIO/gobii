@@ -68,7 +68,13 @@ func USBTrackers() ([]USBInfo, error) {
 	sliceHeader.Data = uintptr(unsafe.Pointer(infos))
 
 	if length == 0 {
-		return nil, err
+		if err.Ok() { 
+			// If everything is ok, do not worry package users with this.
+			// If there is no trackers connected, list would be empty at this point, but err != nil.
+			return nil, nil
+		} else {
+			return nil, err
+		}
 	}
 
 	//Transfer data into Go runtime handled memory.

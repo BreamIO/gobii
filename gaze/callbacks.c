@@ -11,5 +11,5 @@ breamio_listener(const struct tobiigaze_gaze_data *gaze_data,
 tobiigaze_gaze_listener 
 breamio_get_listener()
 {
-	return &breamio_listener;
+	return (tobiigaze_gaze_listener) &breamio_listener;
 }
