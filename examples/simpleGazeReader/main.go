@@ -8,11 +8,22 @@ import (
 	"github.com/zephyyrr/gobii/gaze"
 	"log"
 	"time"
+	"flag"
 )
 
+var auto = flag.Bool("auto", false, "Automagically find a tracker to use.")
+
 func main() {
+	flag.Parse()
 	log.Println("Creating tracker...")
-	et, err := gaze.AnyEyeTracker()
+	var et *gaze.EyeTracker
+	var err error
+	if *auto {
+		et, err = gaze.AnyEyeTracker()
+	} else {
+		url := flag.Arg(0)
+		et, err = gaze.EyeTrackerFromURL(url);
+	}
 
 	if err != nil {
 		log.Fatalln("Error:", err)
@@ -32,7 +43,7 @@ func main() {
 
 	log.Println(info)
 
-	et.StartTracking(func (data *gaze.GazeData) {
+	et.StartTracking(func(data *gaze.GazeData) {
 		ts := data.TrackingStatus()
 		if ts >= gaze.BothEyesTracked && ts != gaze.OneEyeTrackedUnknownWhich {
 			fmt.Println(data)
