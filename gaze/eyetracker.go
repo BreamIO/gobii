@@ -13,6 +13,7 @@ import "C"
 
 import (
 	"fmt"
+	"log"
 	"unsafe"
 )
 
@@ -56,7 +57,6 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	if !err.Ok() {
 		return nil, err
 	}
-
 	return &EyeTracker{et, nil}, nil
 }
 
@@ -89,7 +89,6 @@ func AnyEyeTracker() (*EyeTracker, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return EyeTrackerFromURL(url)
 }
 
@@ -98,7 +97,7 @@ func AnyEyeTracker() (*EyeTracker, error) {
 // Returns nil if everything went fine.
 // otherwise an Error.
 // Blocking function which may return an error.
-func (e EyeTracker) Connect() error {
+func (e *EyeTracker) Connect() error {
 	var err Error
 
 	if e.IsConnected() {
@@ -107,31 +106,28 @@ func (e EyeTracker) Connect() error {
 
 	go func() {
 		var err Error
-
 		C.tobiigaze_run_event_loop(e.cPtr(), err.cPtr())
-
-		// log error?
+		log.Println("Gobii/Tobii Event loop has terminated:", err)
 	}()
 
 	C.tobiigaze_connect(e.cPtr(), err.cPtr())
 
-	if err.Ok() {
-		return nil
+	if !err.Ok() {
+		return err
 	}
-
-	return err
+	
+	return nil
 }
 
 // Closes the connection to the EyeTracker
 //
 // Implements io.Closer interface
-func (e EyeTracker) Close() error {
+func (e *EyeTracker) Close() error {
 	if e.IsConnected() {
 		C.tobiigaze_disconnect(e.cPtr())
 	}
 
 	C.tobiigaze_destroy(e.cPtr())
-
 	return nil
 }
 
@@ -139,7 +135,7 @@ func (e EyeTracker) Close() error {
 //
 // Returns true if it is connected.
 // False otherwise.
-func (e EyeTracker) IsConnected() bool {
+func (e *EyeTracker) IsConnected() bool {
 	return C.tobiigaze_is_connected(e.cPtr()) == 1
 }
 
@@ -159,7 +155,7 @@ func (e EyeTrackerOption) cTyp() C.tobiigaze_option {
 // Allows you to set custom settings for the tracker.
 // This includes, but is not limited to the possibility to set
 // the timeout time before the synchronous operations timesout
-func (e EyeTracker) SetOption(o EyeTrackerOption, value int) error {
+func (e *EyeTracker) SetOption(o EyeTrackerOption, value int) error {
 	var err Error
 
 	C.tobiigaze_set_option(e.cPtr(), o.cTyp(),
@@ -174,7 +170,7 @@ func (e EyeTracker) SetOption(o EyeTrackerOption, value int) error {
 
 // Returns the URL of the EyeTracker, or if
 // an error occurs, the empty string ("").
-func (e EyeTracker) URL() string {
+func (e *EyeTracker) URL() string {
 	var err Error
 
 	str := C.GoString(C.tobiigaze_get_url(e.cPtr(), err.cPtr()))
@@ -203,7 +199,7 @@ func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
 	}
 }
 
-var trackingCallback = exportedTrackingCallback
+//var trackingCallback = exportedTrackingCallback
 
 // The callback parameter is now silently ignored.
 func (e *EyeTracker) StartTracking(callback GazeFunc) error {
@@ -220,6 +216,10 @@ func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 	}
 
 	return err
+}
+
+func (e EyeTracker) String() string {
+	return fmt.Sprintf("<gaze.EyeTracker %x>", e.handle)
 }
 
 // Go level abstraction for the device_info struct.
