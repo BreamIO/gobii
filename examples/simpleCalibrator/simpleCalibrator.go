@@ -35,12 +35,14 @@ func main() {
 		calibratePoint(et, 0.9, 0.9)
 		calibratePoint(et, 0.1, 0.9)
 		calibratePoint(et, 0.5, 0.5)
-		et.StopCalibration(func (err error) {
-			defer close(done)
-			if err != nil {
-				log.Println("Could not start calibrating:", err)
-				return
-			}
+		et.ComputeAndSetCalibration(func(err error) {
+			et.StopCalibration(func (err error) {
+				defer close(done)
+				if err != nil {
+					log.Println("Could not start calibrating:", err)
+					return
+				}
+			})
 		})
 	})
 	
