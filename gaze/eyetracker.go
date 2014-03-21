@@ -228,14 +228,21 @@ func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 // userData will always be a pointer to an EyeTracker instance.
 func exportedCalibrationCallback(error_code C.tobiigaze_error_code,
 	userData unsafe.Pointer) {
-
+	
 	et := (*EyeTracker)(unsafe.Pointer(userData))
 	//fmt.Println(GazeDataFromC(data))
-	if et.calibrationCallback!= nil {
-		go et.calibrationCallback((Error)(error_code))
+	callback := et.calibrationCallback
+	et.calibrationLock.Unlock()
+	if callback != nil {
+		err := (Error)(error_code)
+		if err.Ok() {
+			go callback(nil)
+		} else {
+			go callback(err)
+		}
+		
 	}
 	et.calibrationCallback = nil
-	et.calibrationLock.Unlock()
 }
 
 // Starts calibration of the eye tracker.
