@@ -13,7 +13,6 @@ import "C"
 
 import (
 	"fmt"
-	"log"
 	"unsafe"
 )
 
@@ -107,7 +106,7 @@ func (e *EyeTracker) Connect() error {
 	go func() {
 		var err Error
 		C.tobiigaze_run_event_loop(e.cPtr(), err.cPtr())
-		log.Println("Gobii/Tobii Event loop has terminated:", err)
+		//log.Println("Gobii/Tobii Event loop has terminated:", err)
 	}()
 
 	C.tobiigaze_connect(e.cPtr(), err.cPtr())
