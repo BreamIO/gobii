@@ -2,9 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
-	"os/signal"
-	//"time"
 
 	"github.com/zephyyrr/gobii/gaze"
 	termbox "github.com/nsf/termbox-go"
@@ -16,8 +13,6 @@ const (
 )
 
 func main() {
-	signaler := make(chan os.Signal, 1)
-	signal.Notify(signaler, os.Interrupt, os.Kill)
 	termbox.Init()
 	defer termbox.Close()
 	
@@ -52,10 +47,7 @@ func main() {
 		}
 	}()
 	
-	select {
-		case <-signaler:
-		case <-done:
-	}
+	<-done
 }
 
 func drawPoint(point gaze.Point2D, attributes termbox.Attribute) {
