@@ -7,6 +7,7 @@ package gaze
 #include "tobiigaze_ext.h"
 #include "tobiigaze_data_types.h"
 #include "tobiigaze_discovery.h"
+#include "tobiigaze_calibration.h"
 #include "callbacks.h"
 */
 import "C"
@@ -14,6 +15,7 @@ import "C"
 import (
 	"fmt"
 	"unsafe"
+	"sync"
 )
 
 // An abstraction for tobiigaze_eye_tracker
@@ -31,6 +33,8 @@ import (
 type EyeTracker struct {
 	handle       *C.tobiigaze_eye_tracker
 	gazeCallback GazeFunc
+	calibrationLock sync.Mutex
+	calibrationCallback Callback
 }
 
 // Get a C-style pointer
@@ -56,7 +60,7 @@ func EyeTrackerFromURL(url string) (*EyeTracker, error) {
 	if !err.Ok() {
 		return nil, err
 	}
-	return &EyeTracker{et, nil}, nil
+	return &EyeTracker{et, nil, sync.Mutex{}, nil}, nil
 }
 
 // Gets the URL of any connected EyeTracker.
@@ -198,8 +202,6 @@ func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
 	}
 }
 
-//var trackingCallback = exportedTrackingCallback
-
 // The callback parameter is now silently ignored.
 func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 	var err Error
@@ -215,6 +217,104 @@ func (e *EyeTracker) StartTracking(callback GazeFunc) error {
 	}
 
 	return err
+}
+
+//export exportedCalibrationCallback
+// Callback reused by all trackers. Warning! Dark magic!
+//
+// data has to be copied to be persisted.
+// ext is currently not used.
+// userData will always be a pointer to an EyeTracker instance.
+func exportedCalibrationCallback(error_code C.tobiigaze_error_code,
+	userData unsafe.Pointer) {
+	
+	et := (*EyeTracker)(unsafe.Pointer(userData))
+	//fmt.Println(GazeDataFromC(data))
+	callback := et.calibrationCallback
+	et.calibrationLock.Unlock()
+	if callback != nil {
+		err := (Error)(error_code)
+		if err.Ok() {
+			go callback(nil)
+		} else {
+			go callback(err)
+		}
+		
+	}
+	et.calibrationCallback = nil
+}
+
+// Starts calibration of the eye tracker.
+//
+// If another calibration call is in the pipeline, this call will block until it is done.
+// This is to protect user data from corruption and garbage collection.
+// Please understand.
+func (e *EyeTracker) StartCalibration(callback Callback) {
+	e.calibrationLock.Lock()
+	e.calibrationCallback = callback //Store it to avoid GC sweep.
+	C.tobiigaze_calibration_start_async(e.cPtr(),
+		C.breamio_get_callback(),
+		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
+}
+
+// Stops calibration of the eye tracker.
+//
+// If another calibration call is in the pipeline, this call will block until it is done.
+// This is to protect user data from corruption and garbage collection.
+// Please understand.
+func (e *EyeTracker) StopCalibration(callback Callback) {
+	e.calibrationLock.Lock()
+	e.calibrationCallback = callback //Store it to avoid GC sweep.
+	C.tobiigaze_calibration_stop_async(e.cPtr(),
+		C.breamio_get_callback(),
+		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
+}
+
+// Adds a point to the current calibration.
+//
+// The callback is called with a Error if called without a prior successful StartCalibration call.
+//
+// If another calibration call is in the pipeline, this call will block until it is done.
+// This is to protect user data from corruption and garbage collection.
+// Please understand.
+func (e *EyeTracker) AddPointToCalibration(point *Point2D, callback Callback) {
+	e.calibrationLock.Lock()
+	e.calibrationCallback = callback //Store it to avoid GC sweep.
+	C.tobiigaze_calibration_add_point_async(e.cPtr(),
+		&C.struct_tobiigaze_point_2d{(C.double)(point.x), (C.double)(point.y)},
+		C.breamio_get_callback(),
+		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
+}
+
+// Removes a point from the current calibration.
+//
+// The callback is called with a Error if called without a prior successful StartCalibration call.
+//
+// If another calibration call is in the pipeline, this call will block until it is done.
+// This is to protect user data from corruption and garbage collection.
+// Please understand.
+func (e *EyeTracker) RemovePointFromCalibration(point *Point2D, callback Callback) {
+	e.calibrationLock.Lock()
+	e.calibrationCallback = callback //Store it to avoid GC sweep.
+	C.tobiigaze_calibration_remove_point_async(e.cPtr(),
+		&C.struct_tobiigaze_point_2d{(C.double)(point.x), (C.double)(point.y)},
+		C.breamio_get_callback(),
+		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
+}
+
+// Calculates the result of the calibration and stores it in the tracker.
+//
+// The callback is called with a Error if called without a prior successful StartCalibration call.
+//
+// If another calibration call is in the pipeline, this call will block until it is done.
+// This is to protect user data from corruption and garbage collection.
+// Please understand.
+func (e *EyeTracker) ComputeAndSetCalibration(callback Callback) {
+	e.calibrationLock.Lock()
+	e.calibrationCallback = callback //Store it to avoid GC sweep.
+	C.tobiigaze_calibration_compute_and_set_async(e.cPtr(),
+		C.breamio_get_callback(),
+		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
 }
 
 func (e EyeTracker) String() string {
@@ -281,3 +381,7 @@ func (e EyeTracker) Info() (EyeTrackerInfo, error) {
 // This type is used for callbacks inserted into
 // the EyeTracker for handeling incoming GazeData points.
 type GazeFunc func(data *GazeData)
+
+//Common tobii callback
+//Used for most calibration functions. 
+type Callback func(err error)
