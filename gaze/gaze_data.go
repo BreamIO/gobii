@@ -138,6 +138,10 @@ func point2DFromC(c_data C.struct_tobiigaze_point_2d) (p Point2D) {
 	return
 }
 
+func NewPoint2D(x, y float64) *Point2D {
+	return &Point2D{x, y}
+}
+
 func (p Point2D) X() float64 {
 	return p.x
 }
