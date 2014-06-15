@@ -1,30 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
-	"github.com/zephyyrr/gobii/gaze"
 	termbox "github.com/nsf/termbox-go"
+	"github.com/zephyyrr/gobii/gaze"
 )
 
 func main() {
 	termbox.Init()
 	defer termbox.Close()
-	
+
 	et, err := gaze.AnyEyeTracker()
-	
+
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	
+
 	et.Connect()
 	defer et.Close()
-	
+
 	done := make(chan struct{})
-	
-	et.StartCalibration(func (err error) {
+
+	et.StartCalibration(func(err error) {
 		if err != nil {
 			log.Println("Could not start calibrating:", err)
 			close(done)
@@ -36,7 +37,7 @@ func main() {
 		calibratePoint(et, 0.1, 0.9)
 		calibratePoint(et, 0.5, 0.5)
 		et.ComputeAndSetCalibration(func(err error) {
-			et.StopCalibration(func (err error) {
+			et.StopCalibration(func(err error) {
 				defer close(done)
 				if err != nil {
 					log.Println("Could not start calibrating:", err)
@@ -45,23 +46,24 @@ func main() {
 			})
 		})
 	})
-	
+	points, err := et.CalibrationPoints()
+	fmt.Println()
 	<-done
 }
 
 const marker = termbox.ColorDefault | termbox.AttrBold
 
-func calibratePoint(et *gaze.EyeTracker, x, y float64) {
-	termbox.Clear(0 ,0)
+func calibratePoint(et gaze.EyeTracker, x, y float64) {
+	termbox.Clear(0, 0)
 	sizeX, sizeY := termbox.Size()
 	dx, dy := int(float64(sizeX)*x), int(float64(sizeY)*y)
-	termbox.CellBuffer()[sizeX*dy + dx] = termbox.Cell{'#', marker, termbox.ColorDefault}
+	termbox.CellBuffer()[sizeX*dy+dx] = termbox.Cell{'#', marker, termbox.ColorDefault}
 	termbox.Flush()
 	//log.Printf("Termbox Size: (%d, %d)", sizeX, sizeY)
 	log.Printf("Calibrating (%.3f, %.3f)", x, y)
 	done := make(chan struct{})
-	time.Sleep(1*time.Second) //Minimum time. Gives user time to react.
-	et.AddPointToCalibration(gaze.NewPoint2D(x, y), func (err error) {
+	time.Sleep(1 * time.Second) //Minimum time. Gives user time to react.
+	et.AddPointToCalibration(gaze.NewPoint2D(x, y), func(err error) {
 		close(done) //Synchronizing async call.
 	})
 	<-done

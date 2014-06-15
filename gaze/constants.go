@@ -1,5 +1,3 @@
-// +build ignore
-
 package gaze
 
 type txUserParam uintptr
@@ -29,7 +27,7 @@ const (
 	tobiigaze_key_size                             = 32
 	tobiigaze_max_calibration_point_data_items     = 512
 	tobiigaze_device_info_max_size                 = 128
-	tobiigaze_device_info_max_size                 = 138
+	tobiigaze_device_address_info_max_size         = 138
 	tobiigaze_max_devices                          = 9 // Fo Realz?
 	tobiigaze_framerates_max_size                  = 32
 	tobiigaze_illumination_mode_string_max_size    = 64
@@ -80,8 +78,8 @@ type tobiigaze_point_2d struct {
 }
 
 type usb_device_info struct {
-	serialNumber    [tobii_usb_device_info_max_size]byte
-	productName     [tobii_usb_device_info_max_size]byte
-	platformType    [tobii_usb_device_info_max_size]byte
-	firmwareVersion [tobii_usb_device_info_max_size]byte
+	serialNumber    [tobiigaze_device_info_max_size]byte
+	productName     [tobiigaze_device_info_max_size]byte
+	platformType    [tobiigaze_device_info_max_size]byte
+	firmwareVersion [tobiigaze_device_info_max_size]byte
 }

@@ -8,14 +8,15 @@ package gaze
 #include "tobiigaze_data_types.h"
 #include "tobiigaze_discovery.h"
 #include "tobiigaze_calibration.h"
+#include "tobiigaze_display_area.h"
 #include "callbacks.h"
 */
 import "C"
 
 import (
 	"fmt"
-	"unsafe"
 	"sync"
+	"unsafe"
 )
 
 type EyeTracker interface {
@@ -25,12 +26,14 @@ type EyeTracker interface {
 	SetOption(EyeTrackerOption, int) error
 	URL() string
 	StartTracking(GazeFunc) error
-	
+
 	StartCalibration(Callback)
 	StopCalibration(Callback)
 	AddPointToCalibration(*Point2D, Callback)
 	RemovePointFromCalibration(*Point2D, Callback)
 	ComputeAndSetCalibration(Callback)
+	CalibrationPoints() ([]CalibrationPoint, error)
+	SetDisplayArea(width, height, angle float64) error
 }
 
 // An abstraction for tobiigaze_eye_tracker
@@ -45,19 +48,24 @@ type EyeTracker interface {
 // With that being said.
 // Good Luck!
 
-type gazeTracker struct {
-	handle       *C.tobiigaze_eye_tracker
-	gazeCallback GazeFunc
-	calibrationLock sync.Mutex
+type GazeTracker struct {
+	handle              *C.tobiigaze_eye_tracker
+	gazeCallback        GazeFunc
+	calibrationLock     sync.Mutex
 	calibrationCallback Callback
 }
 
 // Get a C-style pointer
-func (e gazeTracker) cPtr() *C.tobiigaze_eye_tracker {
+func (e GazeTracker) cPtr() *C.tobiigaze_eye_tracker {
 	return e.handle
 }
 
-// Creates a new gazeTracker instance from the given url.
+// Get a C-style pointer
+func (e GazeTracker) CPtr() *C.tobiigaze_eye_tracker {
+	return e.cPtr()
+}
+
+// Creates a new GazeTracker instance from the given url.
 //
 // An error will be returned if there was an error.
 // The URL should have a format like:
@@ -75,10 +83,10 @@ func EyeTrackerFromURL(url string) (EyeTracker, error) {
 	if !err.Ok() {
 		return nil, err
 	}
-	return &gazeTracker{et, nil, sync.Mutex{}, nil}, nil
+	return &GazeTracker{et, nil, sync.Mutex{}, nil}, nil
 }
 
-// Gets the URL of any connected gazeTracker.
+// Gets the URL of any connected GazeTracker.
 //
 // Otherwise returns an error.
 func AnyEyeTrackerURL() (string, error) {
@@ -99,7 +107,7 @@ func AnyEyeTrackerURL() (string, error) {
 	return C.GoString(url), nil
 }
 
-// Attempts to return any connected gazeTracker.
+// Attempts to return any connected GazeTracker.
 // Otherwise returns an error.
 func AnyEyeTracker() (EyeTracker, error) {
 	url, err := AnyEyeTrackerURL()
@@ -115,7 +123,7 @@ func AnyEyeTracker() (EyeTracker, error) {
 // Returns nil if everything went fine.
 // otherwise an Error.
 // Blocking function which may return an error.
-func (e *gazeTracker) Connect() error {
+func (e *GazeTracker) Connect() error {
 	var err Error
 
 	if e.IsConnected() {
@@ -133,14 +141,14 @@ func (e *gazeTracker) Connect() error {
 	if !err.Ok() {
 		return err
 	}
-	
+
 	return nil
 }
 
-// Closes the connection to the gazeTracker
+// Closes the connection to the GazeTracker
 //
 // Implements io.Closer interface
-func (e *gazeTracker) Close() error {
+func (e *GazeTracker) Close() error {
 	if e.IsConnected() {
 		C.tobiigaze_disconnect(e.cPtr())
 	}
@@ -153,7 +161,7 @@ func (e *gazeTracker) Close() error {
 //
 // Returns true if it is connected.
 // False otherwise.
-func (e *gazeTracker) IsConnected() bool {
+func (e *GazeTracker) IsConnected() bool {
 	return C.tobiigaze_is_connected(e.cPtr()) == 1
 }
 
@@ -173,7 +181,7 @@ func (e EyeTrackerOption) cTyp() C.tobiigaze_option {
 // Allows you to set custom settings for the tracker.
 // This includes, but is not limited to the possibility to set
 // the timeout time before the synchronous operations timesout
-func (e *gazeTracker) SetOption(o EyeTrackerOption, value int) error {
+func (e *GazeTracker) SetOption(o EyeTrackerOption, value int) error {
 	var err Error
 
 	C.tobiigaze_set_option(e.cPtr(), o.cTyp(),
@@ -186,9 +194,9 @@ func (e *gazeTracker) SetOption(o EyeTrackerOption, value int) error {
 	return err
 }
 
-// Returns the URL of the gazeTracker, or if
+// Returns the URL of the GazeTracker, or if
 // an error occurs, the empty string ("").
-func (e *gazeTracker) URL() string {
+func (e *GazeTracker) URL() string {
 	var err Error
 
 	str := C.GoString(C.tobiigaze_get_url(e.cPtr(), err.cPtr()))
@@ -205,12 +213,12 @@ func (e *gazeTracker) URL() string {
 //
 // data has to be copied to be persisted.
 // ext is currently not used.
-// userData will always be a pointer to an gazeTracker instance.
+// userData will always be a pointer to an GazeTracker instance.
 func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
 	ext *C.struct_tobiigaze_gaze_data_extension,
 	userData unsafe.Pointer) {
 
-	et := (*gazeTracker)(unsafe.Pointer(userData))
+	et := (*GazeTracker)(unsafe.Pointer(userData))
 	//fmt.Println(GazeDataFromC(data))
 	if et.gazeCallback != nil {
 		et.gazeCallback(GazeDataFromC(data))
@@ -218,7 +226,7 @@ func exportedTrackingCallback(data *C.struct_tobiigaze_gaze_data,
 }
 
 // The callback parameter is now silently ignored.
-func (e *gazeTracker) StartTracking(callback GazeFunc) error {
+func (e *GazeTracker) StartTracking(callback GazeFunc) error {
 	var err Error
 	e.gazeCallback = callback
 	C.tobiigaze_start_tracking(e.cPtr(),
@@ -239,11 +247,11 @@ func (e *gazeTracker) StartTracking(callback GazeFunc) error {
 //
 // data has to be copied to be persisted.
 // ext is currently not used.
-// userData will always be a pointer to an gazeTracker instance.
+// userData will always be a pointer to an GazeTracker instance.
 func exportedCalibrationCallback(error_code C.tobiigaze_error_code,
 	userData unsafe.Pointer) {
-	
-	et := (*gazeTracker)(unsafe.Pointer(userData))
+
+	et := (*GazeTracker)(unsafe.Pointer(userData))
 	//fmt.Println(GazeDataFromC(data))
 	callback := et.calibrationCallback
 	et.calibrationLock.Unlock()
@@ -254,7 +262,7 @@ func exportedCalibrationCallback(error_code C.tobiigaze_error_code,
 		} else {
 			go callback(err)
 		}
-		
+
 	}
 	et.calibrationCallback = nil
 }
@@ -264,7 +272,7 @@ func exportedCalibrationCallback(error_code C.tobiigaze_error_code,
 // If another calibration call is in the pipeline, this call will block until it is done.
 // This is to protect user data from corruption and garbage collection.
 // Please understand.
-func (e *gazeTracker) StartCalibration(callback Callback) {
+func (e *GazeTracker) StartCalibration(callback Callback) {
 	e.calibrationLock.Lock()
 	e.calibrationCallback = callback //Store it to avoid GC sweep.
 	C.tobiigaze_calibration_start_async(e.cPtr(),
@@ -277,7 +285,7 @@ func (e *gazeTracker) StartCalibration(callback Callback) {
 // If another calibration call is in the pipeline, this call will block until it is done.
 // This is to protect user data from corruption and garbage collection.
 // Please understand.
-func (e *gazeTracker) StopCalibration(callback Callback) {
+func (e *GazeTracker) StopCalibration(callback Callback) {
 	e.calibrationLock.Lock()
 	e.calibrationCallback = callback //Store it to avoid GC sweep.
 	C.tobiigaze_calibration_stop_async(e.cPtr(),
@@ -292,7 +300,7 @@ func (e *gazeTracker) StopCalibration(callback Callback) {
 // If another calibration call is in the pipeline, this call will block until it is done.
 // This is to protect user data from corruption and garbage collection.
 // Please understand.
-func (e *gazeTracker) AddPointToCalibration(point *Point2D, callback Callback) {
+func (e *GazeTracker) AddPointToCalibration(point *Point2D, callback Callback) {
 	e.calibrationLock.Lock()
 	e.calibrationCallback = callback //Store it to avoid GC sweep.
 	C.tobiigaze_calibration_add_point_async(e.cPtr(),
@@ -308,7 +316,7 @@ func (e *gazeTracker) AddPointToCalibration(point *Point2D, callback Callback) {
 // If another calibration call is in the pipeline, this call will block until it is done.
 // This is to protect user data from corruption and garbage collection.
 // Please understand.
-func (e *gazeTracker) RemovePointFromCalibration(point *Point2D, callback Callback) {
+func (e *GazeTracker) RemovePointFromCalibration(point *Point2D, callback Callback) {
 	e.calibrationLock.Lock()
 	e.calibrationCallback = callback //Store it to avoid GC sweep.
 	C.tobiigaze_calibration_remove_point_async(e.cPtr(),
@@ -324,7 +332,7 @@ func (e *gazeTracker) RemovePointFromCalibration(point *Point2D, callback Callba
 // If another calibration call is in the pipeline, this call will block until it is done.
 // This is to protect user data from corruption and garbage collection.
 // Please understand.
-func (e *gazeTracker) ComputeAndSetCalibration(callback Callback) {
+func (e *GazeTracker) ComputeAndSetCalibration(callback Callback) {
 	e.calibrationLock.Lock()
 	e.calibrationCallback = callback //Store it to avoid GC sweep.
 	C.tobiigaze_calibration_compute_and_set_async(e.cPtr(),
@@ -332,8 +340,8 @@ func (e *gazeTracker) ComputeAndSetCalibration(callback Callback) {
 		unsafe.Pointer(e)) //unsafe reference to the tracker. Needed to get the real callback later
 }
 
-func (e gazeTracker) String() string {
-	return fmt.Sprintf("<gaze.gazeTracker %x>", e.handle)
+func (e GazeTracker) String() string {
+	return fmt.Sprintf("<gaze.GazeTracker %x>", e.handle)
 }
 
 // Go level abstraction for the device_info struct.
@@ -380,7 +388,7 @@ func (e EyeTrackerInfo) String() string {
 }
 
 // Gets a Go style EyeTrackerInfo object or an error
-func (e gazeTracker) Info() (EyeTrackerInfo, error) {
+func (e GazeTracker) Info() (EyeTrackerInfo, error) {
 	var err Error
 	var info EyeTrackerInfo
 
@@ -393,10 +401,77 @@ func (e gazeTracker) Info() (EyeTrackerInfo, error) {
 	return info, err
 }
 
+func (e GazeTracker) CalibrationPoints() ([]CalibrationPoint, error) {
+	calibration := new(C.struct_tobiigaze_calibration)
+	err := new(Error)
+	C.tobiigaze_get_calibration(e.cPtr(), calibration, err.cPtr())
+	if !err.Ok() {
+		return nil, err
+	}
+	var points [tobiigaze_max_calibration_point_data_items]C.struct_tobiigaze_calibration_point_data
+	var resultLength uint32
+	c_reslength := (C.uint32_t)(resultLength)
+	C.tobiigaze_get_calibration_point_data_items(calibration, &points[0], (C.uint32_t)(len(points)), &c_reslength, err.cPtr())
+	if !err.Ok() {
+		return nil, err
+	}
+
+	result := make([]CalibrationPoint, resultLength, resultLength)
+
+	for i := uint32(0); i < resultLength; i++ {
+		result[i] = CalibrationPointFromC(points[i])
+	}
+
+	return result, nil
+}
+
+func (e GazeTracker) SetDisplayArea(width, height, angle float64) error {
+	var disp_area C.struct_tobiigaze_display_area
+	disp_area = getDisplayArea(width, height, angle)
+
+	err := new(Error)
+	C.tobiigaze_set_display_area(e.cPtr(), &disp_area, err.cPtr())
+	if err.Ok() {
+		return nil
+	}
+	return err
+}
+
+func getDisplayArea(width, height, angle float64) C.struct_tobiigaze_display_area {
+	var disp_area C.struct_tobiigaze_display_area
+
+	/*disp_area.top_left.x = (C.double)(-width / 2)
+	disp_area.top_left.y = (C.double)(math.Cos(angle) * (height + 30))
+	disp_area.top_left.z = -(C.double)(math.Sin(angle)*(height+10) + 10)
+
+	disp_area.top_right.x = (C.double)(width / 2)
+	disp_area.top_right.y = (C.double)(math.Cos(angle) * (height + 30))
+	disp_area.top_right.z = -(C.double)(math.Sin(angle)*(height+10) + 10)
+
+	disp_area.bottom_left.x = (C.double)(-width / 2)
+	disp_area.bottom_left.y = (C.double)(30)
+	disp_area.bottom_left.z = (C.double)(-10)*/
+
+	// Dreamhack values of Tracker #1
+	disp_area.top_left.x = -263
+	disp_area.top_left.y = 323
+	disp_area.top_left.z = -25
+
+	disp_area.top_right.x = 260
+	disp_area.top_right.y = 323
+	disp_area.top_right.z = -25
+
+	disp_area.bottom_left.x = -263
+	disp_area.bottom_left.y = 25
+	disp_area.bottom_left.z = -10
+
+	return disp_area
+}
+
 // This type is used for callbacks inserted into
-// the gazeTracker for handeling incoming GazeData points.
+// the GazeTracker for handeling incoming GazeData points.
 type GazeFunc func(data *GazeData)
 
 //Common tobii callback
-//Used for most calibration functions. 
+//Used for most calibration functions.
 type Callback func(err error)

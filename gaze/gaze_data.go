@@ -28,7 +28,8 @@ type GazeData struct {
 
 func GazeDataFromC(c_data *C.struct_tobiigaze_gaze_data) (data *GazeData) {
 	data = new(GazeData)
-	data.timestamp = time.Unix(int64((C.int64_t)(c_data.timestamp)), 0)
+	//data.timestamp = time.Unix(int64((C.int64_t)(c_data.timestamp)), 0)
+	data.timestamp = time.Now()
 	data.trackingstatus = TrackingStatus((C.uint64_t)(c_data.tracking_status))
 	data.left = eyeDataFromC((C.struct_tobiigaze_gaze_data_eye)(c_data.left))
 	data.right = eyeDataFromC((C.struct_tobiigaze_gaze_data_eye)(c_data.right))
@@ -58,8 +59,8 @@ func (data GazeData) Right() EyeData {
 type EyeData struct {
 	eyePositionFromEyeTracker,
 	eyePositionInTrackBox,
-	gazePointFromEyeTracker Point3D
-	gazePointOnDisplay Point2D
+	gazePointFromEyeTracker *Point3D
+	gazePointOnDisplay *Point2D
 }
 
 func eyeDataFromC(c_data C.struct_tobiigaze_gaze_data_eye) (ed EyeData) {
@@ -77,28 +78,28 @@ func (ed EyeData) String() string {
 // Gets the position of the users eyes in millimetres.
 //
 // Point is relative to the tracker.
-func (ed EyeData) EyePositionFromEyeTracker() Point3D {
+func (ed EyeData) EyePositionFromEyeTracker() *Point3D {
 	return ed.eyePositionFromEyeTracker
 }
 
 // Gets the position of the users eyes in normalized coordinates.
 //
 // Point is relative to the track box.
-func (ed EyeData) EyePositionInTrackBox() Point3D {
+func (ed EyeData) EyePositionInTrackBox() *Point3D {
 	return ed.eyePositionInTrackBox
 }
 
 // Gets the position of the gaze point in millimetres.
 //
 // Point is relative to the tracker.
-func (ed EyeData) GazePointFromEyeTracker() Point3D {
+func (ed EyeData) GazePointFromEyeTracker() *Point3D {
 	return ed.gazePointFromEyeTracker
 }
 
 // Gets the position of the gaze point in normalized coordinates.
 //
 // The point is relative to the upper left corner of the screen.
-func (ed EyeData) GazePointOnDisplay() Point2D {
+func (ed EyeData) GazePointOnDisplay() *Point2D {
 	return ed.gazePointOnDisplay
 }
 
@@ -108,13 +109,23 @@ func (ed EyeData) GazePointOnDisplay() Point2D {
 // one for each axis in a three dimensional
 // carthesian coordinate system (x, y, z).
 type Point3D struct {
-	Point2D
+	*Point2D
 	z float64
 }
 
-func point3DFromC(c_data C.struct_tobiigaze_point_3d) (p Point3D) {
-	p.Point2D.x = float64(c_data.x)
-	p.Point2D.y = float64(c_data.y)
+func (p *Point3D) Add(x, y, z float64) {
+	p.Point2D.Add(x, y)
+	z += z
+}
+
+func (p *Point3D) Multiply(x, y, z float64) {
+	p.Point2D.Multiply(x, y)
+	z *= z
+}
+
+func point3DFromC(c_data C.struct_tobiigaze_point_3d) (p *Point3D) {
+	p = new(Point3D)
+	p.Point2D = &Point2D{float64(c_data.x), float64(c_data.y)}
 	p.z = float64(c_data.z)
 	return
 }
@@ -132,9 +143,23 @@ type Point2D struct {
 	x, y float64
 }
 
-func point2DFromC(c_data C.struct_tobiigaze_point_2d) (p Point2D) {
-	p.x = float64(c_data.x)
-	p.y = float64(c_data.y)
+func (p *Point2D) Add(x, y float64) {
+	p.x += x
+	p.y += y
+}
+
+func (p *Point2D) Multiply(x, y float64) {
+	p.x *= x
+	p.y *= y
+}
+
+func point2DFromC(c_data C.struct_tobiigaze_point_2d) (p *Point2D) {
+	p = &Point2D{float64(c_data.x), float64(c_data.y)}
+	return
+}
+
+func point2DFromCf(c_data C.struct_tobiigaze_point_2d_f) (p *Point2D) {
+	p = &Point2D{float64(c_data.x), float64(c_data.y)}
 	return
 }
 
