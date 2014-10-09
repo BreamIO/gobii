@@ -30,8 +30,8 @@ func main() {
 		ts := data.TrackingStatus()
 		if ts >= gaze.BothEyesTracked && ts != gaze.OneEyeTrackedUnknownWhich {
 			termbox.Clear(0, termbox.ColorWhite)
-			drawPoint(data.Left().GazePointOnDisplay(), leftMarker)
-			drawPoint(data.Right().GazePointOnDisplay(), rightMarker)
+			drawPoint(*data.Left().GazePointOnDisplay(), leftMarker)
+			drawPoint(*data.Right().GazePointOnDisplay(), rightMarker)
 			termbox.Flush()
 		}
 	})
