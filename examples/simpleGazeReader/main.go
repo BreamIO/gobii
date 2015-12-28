@@ -5,7 +5,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/zephyyrr/gobii/gaze"
+	"github.com/BreamIO/gobii/gaze"
 	"log"
 	"time"
 	"flag"
