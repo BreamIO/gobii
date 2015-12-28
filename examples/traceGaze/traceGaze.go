@@ -4,7 +4,7 @@ import (
 	"log"
 
 	termbox "github.com/nsf/termbox-go"
-	"github.com/zephyyrr/gobii/gaze"
+	"github.com/BreamIO/gobii/gaze"
 )
 
 const (
