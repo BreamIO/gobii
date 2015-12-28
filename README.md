@@ -17,7 +17,7 @@ Usage:
 
 5. Download C bindings
 
-6. `go get github.com/zephyyrr/gobii`
+6. `go get github.com/BreamIO/gobii`
 
 7. add import statement to gaze package to code.
 
